@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "21st-dev": {
+      "command": "npx",
+      "args": ["-y", "@21st-dev/mcp-server"],
+      "env": {}
+    }
+  }
+}

@@ -1,0 +1,2 @@
+-- Seed data for local Supabase development
+-- Insert mock users, products, or default configuration here

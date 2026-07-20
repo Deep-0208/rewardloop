@@ -1,0 +1,44 @@
+# dependencies
+node_modules/
+
+# next
+.next/
+out/
+
+# environment
+.env
+.env.local
+.env.production
+
+# logs
+*.log
+
+# vscode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# testing
+coverage/
+
+# build
+dist/
+
+# python
+.venv/
+__pycache__/
+
+# graphify
+graphify-out/
+
+# misc
+*.tsbuildinfo
+
+# next env
+next-env.d.ts
+
+# vercel
+.vercel
+
