@@ -42,15 +42,15 @@
 
 ## Core
 
-| Layer      | Technology   | Version            | Purpose                                                   |
-| ---------- | ------------ | ------------------ | --------------------------------------------------------- |
-| Framework  | Next.js      | 15.x               | App Router, Server Actions, SSR                           |
-| Language   | TypeScript   | 5.x                | Strict mode, full type safety                             |
-| Runtime    | React        | 19.x               | UI rendering                                              |
-| Styling    | Tailwind CSS | **3.x**            | Utility-first CSS (NOT v4 — shadcn/ui requires v3 syntax) |
-| Components | shadcn/ui    | latest stable      | Base component library                                    |
-| Icons      | Lucide React | latest stable      | Consistent iconography                                    |
-| Font       | Inter        | 400, 500, 600, 700 | Typography                                                |
+| Layer      | Technology   | Version            | Purpose                             |
+| ---------- | ------------ | ------------------ | ----------------------------------- |
+| Framework  | Next.js      | 15.x               | App Router, Server Actions, SSR     |
+| Language   | TypeScript   | 5.x                | Strict mode, full type safety       |
+| Runtime    | React        | 19.x               | UI rendering                        |
+| Styling    | Tailwind CSS | **4.x**            | Utility-first CSS (`@theme` syntax) |
+| Components | shadcn/ui    | latest stable      | Base component library              |
+| Icons      | Lucide React | latest stable      | Consistent iconography              |
+| Font       | Inter        | 400, 500, 600, 700 | Typography                          |
 
 ## State & Data
 

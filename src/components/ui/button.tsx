@@ -1,10 +1,25 @@
+/**
+ * RewardLoop — Enhanced Button System.
+ *
+ * Extends shadcn/ui button with RewardLoop-specific variants and features:
+ * - `success` variant (emerald green)
+ * - `touch` size (48px mobile CTA)
+ * - `full` size (full-width 48px sticky CTA)
+ * - `loading` prop with spinner
+ * - Active scale animation (98%)
+ *
+ * Source: 09_UI_UX_Specification.md §11 (Component States)
+ */
+
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
+import { Loader2 } from "@/components/icons";
+import type { ReactNode } from "react";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 active:scale-[0.98] motion-reduce:active:scale-100",
   {
     variants: {
       variant: {
@@ -17,6 +32,8 @@ const buttonVariants = cva(
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+        success:
+          "bg-[var(--color-success)] text-white hover:bg-[var(--color-success)]/80 focus-visible:ring-[var(--color-success)]/50",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -25,12 +42,19 @@ const buttonVariants = cva(
         xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        /** 48px touch target for mobile CTAs */
+        touch:
+          "h-12 gap-2 rounded-xl px-4 text-base [&_svg:not([class*='size-'])]:size-5",
+        /** Full-width 48px for sticky bottom CTAs */
+        full: "h-12 w-full gap-2 rounded-xl px-4 text-base [&_svg:not([class*='size-'])]:size-5",
         icon: "size-8",
         "icon-xs":
           "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
         "icon-sm":
           "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-9",
+        /** 48px icon button for touch targets */
+        "icon-touch": "size-12 rounded-xl",
       },
     },
     defaultVariants: {
@@ -40,19 +64,51 @@ const buttonVariants = cva(
   },
 );
 
+interface ButtonProps
+  extends ButtonPrimitive.Props, VariantProps<typeof buttonVariants> {
+  /** Show loading spinner and disable interaction */
+  loading?: boolean;
+  /** Icon to display before the label */
+  leftIcon?: ReactNode;
+  /** Icon to display after the label */
+  rightIcon?: ReactNode;
+}
+
 function Button({
   className,
   variant = "default",
   size = "default",
+  loading,
+  leftIcon,
+  rightIcon,
+  children,
+  disabled,
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonProps) {
   return (
     <ButtonPrimitive
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       {...props}
-    />
+    >
+      {loading ? (
+        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+      ) : leftIcon ? (
+        <span data-icon="inline-start" aria-hidden="true">
+          {leftIcon}
+        </span>
+      ) : null}
+      {loading ? <span className="sr-only">Loading…</span> : null}
+      {!loading ? children : null}
+      {!loading && rightIcon ? (
+        <span data-icon="inline-end" aria-hidden="true">
+          {rightIcon}
+        </span>
+      ) : null}
+    </ButtonPrimitive>
   );
 }
 
-export { Button, buttonVariants };
+export { Button, buttonVariants, type ButtonProps };

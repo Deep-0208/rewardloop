@@ -52,7 +52,7 @@ Every module is independent and can be developed, tested, and deployed independe
 | ----------------- | ---------------------- | ----------------- | ------------------------------------- |
 | Framework         | Next.js                | 15.x (App Router) | Server Components by default          |
 | Language          | TypeScript             | 5.x               | Strict mode                           |
-| Styling           | Tailwind CSS           | **3.x**           | v3 syntax (NOT v4)                    |
+| Styling           | Tailwind CSS           | **4.x**           | v4 syntax (`@theme`)                  |
 | Component Library | shadcn/ui              | Latest stable     | Installed per component via CLI       |
 | Server State      | TanStack Query         | 5.x               | `@tanstack/react-query`               |
 | Client State      | Zustand                | 4.x               |                                       |
@@ -68,7 +68,7 @@ Every module is independent and can be developed, tested, and deployed independe
 | Deployment        | Vercel                 | —                 |                                       |
 | Database          | Supabase PostgreSQL    | —                 |                                       |
 
-> **IMPORTANT on Tailwind:** Use Tailwind v3 configuration syntax (`tailwind.config.ts` with `theme.extend`). Do NOT use Tailwind v4 CSS-first configuration. shadcn/ui requires Tailwind v3.
+> **IMPORTANT on Tailwind:** Use Tailwind v4 configuration syntax (`@theme`).
 
 ---
 
