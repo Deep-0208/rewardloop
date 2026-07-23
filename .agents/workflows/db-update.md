@@ -1,3 +1,8 @@
+---
+name: db-update
+description: Generate database changes, migrations, and schema updates.
+---
+
 # Name
 
 /db-update

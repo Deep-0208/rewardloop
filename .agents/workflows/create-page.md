@@ -1,3 +1,8 @@
+---
+name: create-page
+description: Generate a specification for one production-ready frontend page.
+---
+
 # Name
 
 /create-page

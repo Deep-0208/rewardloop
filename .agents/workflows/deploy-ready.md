@@ -1,3 +1,8 @@
+---
+name: deploy-ready
+description: Prepare the infrastructure and environment for deployment.
+---
+
 # Name
 
 /deploy-ready

@@ -1,3 +1,8 @@
+---
+name: design-screen
+description: Generate a UI/UX specification for a single screen without writing code.
+---
+
 # Name
 
 /design-screen

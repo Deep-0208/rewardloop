@@ -109,6 +109,8 @@ Used for: Multi-table atomic writes that require BEGIN/COMMIT transaction semant
 | `complete_visit(payload)`                                      | Atomically saves transaction + items + ledger + wallet + customer stats. The grand finale. |
 | `auto_create_customer(business_id, phone)`                     | Creates customer + wallet atomically if not found.                                         |
 | `update_reward_rules(business_id, reward_pct, max_redeem_pct)` | Updates reward_rules and logs to audit_logs.                                               |
+| `increment_session_version(p_user_id)`                         | Atomically increments the `session_version` for single-device isolation.                   |
+| `check_and_update_otp_cooldown(p_phone)`                       | Enforces a 30-second cooldown on OTP requests to prevent abuse.                            |
 
 See the full RPC function signatures in Section 11.
 
@@ -195,9 +197,12 @@ app/
 ```typescript
 // middleware.ts
 // Protects all (app)/* and (onboarding)/* routes.
-// Redirects to /login if no Supabase session.
-// Redirects to /onboarding/business if session exists but no business_id.
-// Redirects to /dashboard if session + business_id exist and route is /login.
+// Enforces single-device sessions natively at the Edge.
+// 1. Validates the Supabase session via NEXT_PUBLIC_SUPABASE_ANON_KEY.
+// 2. Verifies the `rl_sv` HMAC-signed cookie using the shared `session-validator.ts`.
+// 3. Queries `public.users.session_version` to enforce strict device isolation.
+// Redirects to /login if unauthenticated, suspended, or session revoked.
+// Redirects to /dashboard if authenticated and accessing /login or /verify.
 ```
 
 ---
@@ -898,6 +903,49 @@ END;
 $$;
 ```
 
+## 11.3 `increment_session_version`
+
+```sql
+CREATE OR REPLACE FUNCTION public.increment_session_version(p_user_id uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+BEGIN
+  UPDATE public.users
+  SET session_version = session_version + 1,
+      updated_at = now()
+  WHERE auth_user_id = p_user_id;
+END;
+$function$
+```
+
+## 11.4 `check_and_update_otp_cooldown`
+
+```sql
+CREATE OR REPLACE FUNCTION public.check_and_update_otp_cooldown(p_phone text)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+DECLARE
+  v_last_request timestamptz;
+BEGIN
+  SELECT created_at INTO v_last_request
+  FROM public.otp_requests
+  WHERE phone = p_phone
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  IF v_last_request IS NOT NULL AND (now() - v_last_request) < interval '30 seconds' THEN
+    RETURN false;
+  END IF;
+
+  RETURN true;
+END;
+$function$
+```
+
 ---
 
 # 12. Server Action Template
@@ -1044,16 +1092,16 @@ Transaction confirmation SMS is sent **after** `complete_visit()` commits succes
 
 # 15. Single-Device Session Enforcement
 
-**Mechanism:** `session_version` INTEGER column on the `users` table.
+**Mechanism:** `session_version` INTEGER column on the `users` table and an HMAC-signed `rl_sv` HTTP-only cookie.
 
 **Flow:**
 
-1. User logs in on Device A. `session_version` = 1. Supabase JWT issued with custom claim `session_version: 1`.
-2. User logs in on Device B. Server Action `loginWithOTP()` increments `users.session_version` to 2. New JWT issued with `session_version: 2`.
-3. Device A's JWT still has `session_version: 1`.
-4. Next request from Device A: Middleware reads JWT claim `session_version: 1`, compares to DB value `2`. Mismatch → return 401 `SESSION_REVOKED`. Client redirects to login.
+1. User logs in on Device A. `session_version` = 1. A signed `rl_sv` cookie is issued containing the version using `REWARDLOOP_SESSION_SECRET`.
+2. User logs in on Device B. Server Action `verifyOTP()` atomically increments `users.session_version` to 2 via the `increment_session_version` RPC. A new signed cookie is issued.
+3. Device A's `rl_sv` cookie still reads version 1.
+4. Next request from Device A: Edge Middleware reads `rl_sv` (1), compares it to DB value (2). Mismatch → return 401 `SESSION_REVOKED`. The session is killed and the user redirects to login.
 
-**Implementation note:** Supabase Auth supports custom JWT claims via `auth.jwt()` hook. The `session_version` must be injected into the JWT payload on auth event. Alternatively, validate `session_version` in every Server Action (defense-in-depth).
+**Implementation note:** `session-validator.ts` provides the single source of truth for both Edge Middleware and Server Actions. Rollback atomicity ensures that if any part of the login fails after verification, the session is cleanly revoked via `try/catch`.
 
 ---
 

@@ -1,3 +1,8 @@
+---
+name: create-api
+description: Generate a specification for the API layer only, without frontend code.
+---
+
 # Name
 
 /create-api

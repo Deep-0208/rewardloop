@@ -1,3 +1,8 @@
+---
+name: create-feature
+description: Create a complete implementation plan before any code is written.
+---
+
 # Name
 
 /create-feature

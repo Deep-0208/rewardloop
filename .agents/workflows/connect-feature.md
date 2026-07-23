@@ -1,3 +1,8 @@
+---
+name: connect-feature
+description: Generate a plan to connect the frontend and backend of a feature.
+---
+
 # Name
 
 /connect-feature

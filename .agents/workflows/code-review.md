@@ -1,3 +1,8 @@
+---
+name: code-review
+description: Review implementation code for quality, security, and architectural alignment.
+---
+
 # Name
 
 /code-review

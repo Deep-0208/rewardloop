@@ -1,3 +1,8 @@
+---
+name: create-backend
+description: Generate a comprehensive backend implementation plan for a specific feature.
+---
+
 # Name
 
 /create-backend

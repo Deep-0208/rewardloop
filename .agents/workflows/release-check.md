@@ -1,3 +1,8 @@
+---
+name: release-check
+description: Audit the project comprehensively before a major release.
+---
+
 # Name
 
 /release-check

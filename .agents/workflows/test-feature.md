@@ -1,3 +1,8 @@
+---
+name: test-feature
+description: Generate a complete testing strategy for a specific feature.
+---
+
 # Name
 
 /test-feature
