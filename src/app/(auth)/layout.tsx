@@ -1,16 +1,9 @@
-import { AppShell } from "@/components/app-shell";
+import { ReactNode } from "react";
 
-/**
- * Auth layout — wraps login and verification pages.
- *
- * No bottom navigation. Centered content. Mobile-optimized.
- */
-export default function AuthLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <AppShell className="items-center justify-center">{children}</AppShell>
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+      {children}
+    </div>
   );
 }

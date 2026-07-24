@@ -1,3 +1,8 @@
+---
+name: next-task
+description: Analyze the project state and recommend the single highest-priority next task.
+---
+
 # Name
 
 /next-task

@@ -1,12 +1,13 @@
 /**
  * RewardLoop — Supabase middleware helper.
  *
- * Refreshes the Supabase auth session on each request.
+ * Refreshes the Supabase auth session on each request using NEXT_PUBLIC_SUPABASE_ANON_KEY.
  * Called from the root middleware.ts.
  */
 
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { validateRewardLoopSession } from "@/features/auth/utils/session-validator";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -15,12 +16,12 @@ export async function updateSession(request: NextRequest) {
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ) {
-    return supabaseResponse;
+    return { response: supabaseResponse, user: null };
   }
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() {
@@ -39,9 +40,15 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // Refresh the session — this is the ONLY purpose of this middleware in Sprint 1.1.
-  // Auth guards and redirects will be added in a later sprint.
-  await supabase.auth.getUser();
+  const cookieValue = request.cookies.get("rl_sv")?.value;
+  const validation = await validateRewardLoopSession(supabase, cookieValue);
 
-  return supabaseResponse;
+  if (!validation.valid) {
+    // Tampered, missing cookie, revoked, or suspended -> revoke session
+    await supabase.auth.signOut();
+    supabaseResponse.cookies.delete("rl_sv");
+    return { response: supabaseResponse, user: null };
+  }
+
+  return { response: supabaseResponse, user: validation.user };
 }

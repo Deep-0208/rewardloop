@@ -1,3 +1,8 @@
+---
+name: feature-audit
+description: Audit an existing feature for compliance, consistency, and quality.
+---
+
 # Name
 
 /feature-audit

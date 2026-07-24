@@ -1,14 +1,74 @@
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-/**
- * Root middleware — session refresh only.
+/* ─── Route Classification ─────────────────────────────────────────────────
  *
- * Sprint 1.1: Minimal middleware that refreshes the Supabase auth session.
- * No authentication guards or redirects yet.
+ * These helpers classify incoming requests by route group.
+ * Used by the middleware to apply group-specific routing guards.
+ *
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+const PUBLIC_ROUTES = new Set(["/", "/login", "/verify"]);
+const AUTH_ROUTE_PREFIX = "/login";
+const VERIFY_ROUTE_PREFIX = "/verify";
+const APP_ROUTE_PREFIXES = [
+  "/dashboard",
+  "/transactions",
+  "/visit",
+  "/insights",
+  "/more",
+] as const;
+const ONBOARDING_ROUTE_PREFIX = "/onboarding";
+
+/** Check if a path is a public route (no auth required) */
+export function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_ROUTES.has(pathname);
+}
+
+/** Check if a path is an auth route (login, verify) */
+export function isAuthRoute(pathname: string): boolean {
+  return (
+    pathname.startsWith(AUTH_ROUTE_PREFIX) ||
+    pathname.startsWith(VERIFY_ROUTE_PREFIX)
+  );
+}
+
+/** Check if a path is a main app route (requires auth) */
+export function isAppRoute(pathname: string): boolean {
+  return APP_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+/** Check if a path is an onboarding route */
+export function isOnboardingRoute(pathname: string): boolean {
+  return pathname.startsWith(ONBOARDING_ROUTE_PREFIX);
+}
+
+/**
+ * Root middleware — lightweight session refresh & route protection.
+ *
+ * 1. Refreshes Supabase session via NEXT_PUBLIC_SUPABASE_ANON_KEY.
+ * 2. Unauthenticated user accessing app/onboarding routes -> redirect to /login.
+ * 3. Authenticated user accessing auth routes (/login, /verify) -> redirect to /dashboard.
  */
 export async function middleware(request: NextRequest) {
-  return updateSession(request);
+  const { response, user } = await updateSession(request);
+  const pathname = request.nextUrl.pathname;
+
+  // Unauthenticated -> redirect from protected routes to /login
+  if (!user && (isAppRoute(pathname) || isOnboardingRoute(pathname))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  // Authenticated -> redirect from auth routes to /dashboard
+  if (user && isAuthRoute(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  return response;
 }
 
 export const config = {

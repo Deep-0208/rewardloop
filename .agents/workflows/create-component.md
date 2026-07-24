@@ -1,3 +1,8 @@
+---
+name: create-component
+description: Generate a comprehensive specification for a reusable UI component.
+---
+
 # Name
 
 /create-component

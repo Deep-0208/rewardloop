@@ -1,3 +1,8 @@
+---
+name: generate-changelog
+description: Generate comprehensive release notes for a new version.
+---
+
 # Name
 
 /generate-changelog

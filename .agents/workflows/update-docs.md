@@ -1,3 +1,8 @@
+---
+name: update-docs
+description: Synchronize project documentation with the latest code changes.
+---
+
 # Name
 
 /update-docs

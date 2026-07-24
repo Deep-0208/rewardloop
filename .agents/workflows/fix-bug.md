@@ -1,3 +1,8 @@
+---
+name: fix-bug
+description: Systematically analyze and fix bugs without breaking unrelated code.
+---
+
 # Name
 
 /fix-bug

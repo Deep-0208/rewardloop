@@ -112,15 +112,15 @@ Rate limits are enforced server-side by checking the `otp_requests` table. No ex
 
 ## `sendLoginOTP`
 
-| Property | Value                                     |
-| -------- | ----------------------------------------- |
-| File     | `features/auth/actions/send-login-otp.ts` |
-| Runtime  | Server Action → Supabase Auth             |
+| Property | Value                               |
+| -------- | ----------------------------------- |
+| File     | `features/auth/actions/send-otp.ts` |
+| Runtime  | Server Action → Supabase Auth       |
 
 ### Input DTO
 
 ```typescript
-interface SendLoginOTPInput {
+interface SendOTPInput {
   phone: string; // 10-digit Indian mobile: "9876543210" (without country code)
 }
 ```
@@ -128,7 +128,7 @@ interface SendLoginOTPInput {
 ### Zod Schema
 
 ```typescript
-const SendLoginOTPSchema = z.object({
+const SendOTPSchema = z.object({
   phone: z
     .string()
     .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number."),
@@ -138,7 +138,7 @@ const SendLoginOTPSchema = z.object({
 ### Output DTO
 
 ```typescript
-interface SendLoginOTPResult {
+interface SendOTPResult {
   sent: true;
 }
 ```
@@ -146,23 +146,24 @@ interface SendLoginOTPResult {
 ### Behaviour
 
 1. Normalize phone to E.164: `+91` + 10-digit input.
-2. Check `otp_requests` table: If ≥5 records with `purpose = 'login'` and `phone = normalized_phone` in last 15 minutes → return `RATE_LIMITED`.
-3. Call `supabase.auth.signInWithOtp({ phone })` — Supabase Auth handles OTP generation and MSG91 delivery.
-4. Return `{ success: true, data: { sent: true } }`.
+2. Check `rl_otp_lock` signed cookie. If valid, return `RATE_LIMITED`.
+3. If cookie missing/invalid, check `check_and_update_otp_cooldown(phone)` RPC. If false, return `RATE_LIMITED`.
+4. Call `supabase.auth.signInWithOtp({ phone })` — Supabase Auth handles OTP generation and MSG91 delivery.
+5. Set `rl_otp_lock` cookie and return `{ success: true, data: { sent: true } }`.
 
 ---
 
 ## `verifyLoginOTP`
 
-| Property | Value                                       |
-| -------- | ------------------------------------------- |
-| File     | `features/auth/actions/verify-login-otp.ts` |
-| Runtime  | Server Action → Supabase Auth               |
+| Property | Value                                 |
+| -------- | ------------------------------------- |
+| File     | `features/auth/actions/verify-otp.ts` |
+| Runtime  | Server Action → Supabase Auth         |
 
 ### Input DTO
 
 ```typescript
-interface VerifyLoginOTPInput {
+interface VerifyOTPInput {
   phone: string; // 10-digit format
   otp: string; // 6-digit numeric string
 }
@@ -171,7 +172,7 @@ interface VerifyLoginOTPInput {
 ### Zod Schema
 
 ```typescript
-const VerifyLoginOTPSchema = z.object({
+const VerifyOTPSchema = z.object({
   phone: z.string().regex(/^[6-9]\d{9}$/),
   otp: z.string().regex(/^\d{6}$/, "OTP must be 6 digits."),
 });
@@ -180,9 +181,10 @@ const VerifyLoginOTPSchema = z.object({
 ### Output DTO
 
 ```typescript
-interface VerifyLoginOTPResult {
+interface VerifyOTPResult {
   isNewUser: boolean; // true = redirect to onboarding
   hasCompletedOnboarding: boolean;
+  redirectTo: string;
 }
 ```
 
@@ -190,8 +192,9 @@ interface VerifyLoginOTPResult {
 
 1. Call `supabase.auth.verifyOtp({ phone: normalized, token: otp, type: 'sms' })`.
 2. On success: Fetch or create `users` record. Check `business_id` for onboarding status.
-3. Increment `session_version` in `users` table (single-device enforcement).
-4. Return `{ isNewUser, hasCompletedOnboarding }`.
+3. Call `increment_session_version` RPC via service role and issue a new HMAC-signed `rl_sv` cookie.
+4. If any step fails post-verification, trigger Authentication Rollback (force sign-out, delete cookies, return `SERVER_ERROR`).
+5. Return `{ isNewUser, hasCompletedOnboarding, redirectTo }`.
 
 ---
 
@@ -215,6 +218,13 @@ interface LogoutResult {
   loggedOut: true;
 }
 ```
+
+### Behaviour
+
+1. Call `increment_session_version` RPC via service role to invalidate all existing device sessions cryptographically.
+2. Call `supabase.auth.signOut()` to kill the underlying Supabase Auth session.
+3. Delete the `rl_sv` cookie.
+4. Return `{ success: true, data: { loggedOut: true } }`.
 
 ---
 

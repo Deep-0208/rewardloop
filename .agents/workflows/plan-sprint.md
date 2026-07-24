@@ -1,3 +1,8 @@
+---
+name: plan-sprint
+description: Break a feature down into actionable implementation tasks for a development sprint.
+---
+
 # Name
 
 /plan-sprint
