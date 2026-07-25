@@ -297,33 +297,34 @@ export function CatalogSelectionStep() {
         </div>
       </div>
 
-      {/* Scrollable Catalog List */}
-      <ul
-        className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 pb-24"
+      {/* Scrollable Catalog Grid (2 Boxes) */}
+      <div
+        className="grid grid-cols-2 gap-3.5 overflow-y-auto px-4 pb-32 flex-1"
         role="list"
         aria-label="Catalog items"
       >
         {filteredCatalog.length === 0 ? (
-          <li className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="col-span-2 flex flex-col items-center justify-center py-12 text-center">
             <p className="text-sm text-muted-foreground">
               No items match your search for &ldquo;{searchQuery.trim()}&rdquo;.
             </p>
-          </li>
+          </div>
         ) : (
           filteredCatalog.map((item) => (
-            <li key={item.id}>
-              <CatalogItemCard
-                id={item.id}
-                name={item.name}
-                price={item.price}
-                type={item.type}
-                quantityInCart={quantityMap.get(item.id) ?? 0}
-                onTap={handleTapItem}
-              />
-            </li>
+            <CatalogItemCard
+              key={item.id}
+              id={item.id}
+              name={item.name}
+              price={item.price}
+              type={item.type}
+              quantityInCart={quantityMap.get(item.id) ?? 0}
+              onTap={handleTapItem}
+              onIncrement={(id) => updateQuantity(id, 1)}
+              onDecrement={(id) => updateQuantity(id, -1)}
+            />
           ))
         )}
-      </ul>
+      </div>
 
       {/* Cart Summary Footer */}
       <CartSummaryFooter

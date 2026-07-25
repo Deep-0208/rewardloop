@@ -24,16 +24,17 @@ interface CatalogItemCardProps {
   readonly type: CatalogItemType;
   readonly quantityInCart: number;
   readonly onTap: (id: string) => void;
+  readonly onIncrement: (id: string) => void;
+  readonly onDecrement: (id: string) => void;
   readonly className?: string;
 }
 
 /**
- * CatalogItemCard — Renders a single service or product.
+ * CatalogItemCard — Renders a single service or product as a 2-column grid box.
  *
- * - Tap to add/increment.
- * - Shows type badge (Service / Product).
- * - Visual ring when item is in cart.
- * - Keyboard accessible (Enter/Space).
+ * - Tap card to select (quantity 1).
+ * - Shows inline `-` and `+` controls when selected (no arbitrary tap incrementing).
+ * - Top-left circular icon bubble, bottom name & price.
  */
 export const CatalogItemCard = memo(function CatalogItemCard({
   id,
@@ -42,6 +43,8 @@ export const CatalogItemCard = memo(function CatalogItemCard({
   type,
   quantityInCart,
   onTap,
+  onIncrement,
+  onDecrement,
   className,
 }: CatalogItemCardProps) {
   const isInCart = quantityInCart > 0;
@@ -49,7 +52,11 @@ export const CatalogItemCard = memo(function CatalogItemCard({
   // Icon chooser helper based on item name and type
   const renderIcon = () => {
     const lowerName = name.toLowerCase();
-    if (lowerName.includes("haircut") || lowerName.includes("hair")) {
+    if (
+      lowerName.includes("haircut") ||
+      lowerName.includes("hair color") ||
+      lowerName.includes("hair")
+    ) {
       return (
         <svg
           width="20"
@@ -93,7 +100,8 @@ export const CatalogItemCard = memo(function CatalogItemCard({
     if (
       lowerName.includes("facial") ||
       lowerName.includes("massage") ||
-      lowerName.includes("spa")
+      lowerName.includes("spa") ||
+      lowerName.includes("face")
     ) {
       return (
         <svg
@@ -113,7 +121,14 @@ export const CatalogItemCard = memo(function CatalogItemCard({
         </svg>
       );
     }
-    if (type === "product") {
+    if (
+      type === "product" ||
+      lowerName.includes("wax") ||
+      lowerName.includes("shampoo") ||
+      lowerName.includes("serum") ||
+      lowerName.includes("conditioner") ||
+      lowerName.includes("oil")
+    ) {
       return (
         <svg
           width="20"
@@ -151,64 +166,86 @@ export const CatalogItemCard = memo(function CatalogItemCard({
     <div
       role="button"
       tabIndex={0}
-      onClick={() => onTap(id)}
+      onClick={() => {
+        if (!isInCart) {
+          onTap(id);
+        }
+      }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onTap(id);
+          if (!isInCart) {
+            onTap(id);
+          }
         }
       }}
       aria-label={`Add ${name} to bill. Price: ${formatCurrency(price)}. Current quantity: ${quantityInCart}.`}
       className={cn(
-        "relative flex items-center gap-3.5 rounded-2xl bg-card p-3.5 transition-all duration-200 select-none",
-        "cursor-pointer active:scale-[0.97]",
+        "relative flex flex-col justify-between p-4 rounded-3xl transition-all duration-200 select-none min-h-[140px]",
+        "cursor-pointer active:scale-[0.98]",
         isInCart
           ? "border-2 border-primary bg-primary/[0.04] shadow-[0_4px_20px_rgba(79,70,229,0.15)] ring-1 ring-primary/20"
-          : "border border-border/60 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.06)] hover:border-primary/30",
+          : "border border-border/60 bg-card shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.06)] hover:border-primary/30",
         className,
       )}
     >
-      {/* Icon bubble */}
-      <div
-        className={cn(
-          "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors duration-200",
-          isInCart
-            ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(79,70,229,0.25)]"
-            : "bg-primary/10 text-primary",
-        )}
-      >
-        {renderIcon()}
+      {/* Top Row: Icon bubble + Quantity controls */}
+      <div className="flex items-center justify-between w-full mb-3">
+        <div
+          className={cn(
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors duration-200",
+            isInCart
+              ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(79,70,229,0.25)]"
+              : "bg-primary/10 text-primary",
+          )}
+        >
+          {renderIcon()}
+        </div>
+
+        {/* Small + / - Stepper when selected */}
+        {isInCart ? (
+          <div
+            className="flex items-center gap-1 bg-card rounded-full p-1 border border-primary/30 shadow-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDecrement(id);
+              }}
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-foreground hover:bg-muted/80 text-xs font-bold transition-colors cursor-pointer"
+              aria-label="Decrease quantity"
+            >
+              −
+            </button>
+            <span className="w-4 text-center text-xs font-bold text-primary tabular-nums">
+              {quantityInCart}
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onIncrement(id);
+              }}
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold transition-colors cursor-pointer"
+              aria-label="Increase quantity"
+            >
+              +
+            </button>
+          </div>
+        ) : null}
       </div>
 
-      {/* Content */}
-      <div className="flex flex-1 flex-col gap-1 overflow-hidden">
-        <span className="truncate text-[15px] font-semibold text-foreground tracking-tight leading-tight">
+      {/* Bottom Content: Name & Price */}
+      <div className="flex flex-col gap-0.5">
+        <span className="text-[15px] font-semibold text-foreground tracking-tight leading-snug line-clamp-1">
           {name}
         </span>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-bold tabular-nums text-primary tracking-tight">
-            {formatCurrency(price)}
-          </span>
-          <Badge
-            variant="secondary"
-            className={cn(
-              "text-[10px] font-semibold capitalize rounded-full px-2 py-0.5",
-              type === "service"
-                ? "bg-primary/10 text-primary dark:bg-primary/20"
-                : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-            )}
-          >
-            {type}
-          </Badge>
-        </div>
+        <span className="text-xs font-bold text-muted-foreground tabular-nums">
+          {formatCurrency(price)}
+        </span>
       </div>
-
-      {/* Quantity badge */}
-      {isInCart ? (
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-[0_2px_8px_rgba(79,70,229,0.4)] animate-in zoom-in-75 duration-150">
-          {quantityInCart}
-        </div>
-      ) : null}
     </div>
   );
 });
