@@ -36,7 +36,7 @@ export default function VerifyForm({ phone }: { phone: string }) {
       phone,
       otp: "",
     },
-    mode: "onChange",
+    mode: "onSubmit",
   });
 
   const onSubmit = (values: OTPSchemaInput) => {
@@ -68,7 +68,7 @@ export default function VerifyForm({ phone }: { phone: string }) {
     router.push(`/login?phone=${encodeURIComponent(phone)}`);
   };
 
-  const isFormDisabled = isPending || !form.formState.isValid;
+  const isFormDisabled = isPending;
 
   // Mask phone number for display
   const maskedPhone = phone
@@ -125,7 +125,11 @@ export default function VerifyForm({ phone }: { phone: string }) {
                       <OTPInput
                         value={field.value}
                         disabled={isPending}
-                        hasError={!!serverError || !!form.formState.errors.otp}
+                        hasError={
+                          !!serverError ||
+                          (form.formState.isSubmitted &&
+                            !!form.formState.errors.otp)
+                        }
                         onChange={(value) => {
                           field.onChange(value);
                           if (serverError) setServerError(null);
