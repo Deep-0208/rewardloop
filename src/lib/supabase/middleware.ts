@@ -19,6 +19,15 @@ export async function updateSession(request: NextRequest) {
     return { response: supabaseResponse, user: null };
   }
 
+  // Fast path: If no Supabase auth cookies exist, return immediately without network roundtrips
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-"));
+
+  if (!hasAuthCookie) {
+    return { response: supabaseResponse, user: null };
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
