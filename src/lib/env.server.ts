@@ -10,30 +10,14 @@
 import "server-only";
 
 import { z } from "zod";
-import { getClientEnv, isDevelopment, type ClientEnv } from "./env.client";
+import { getClientEnv, type ClientEnv } from "./env.client";
 
-const msg91Schema = isDevelopment()
-  ? z.object({
-      MSG91_AUTH_KEY: z.string().optional(),
-      MSG91_OTP_TEMPLATE_ID: z.string().optional(),
-      MSG91_TRANSACTION_TEMPLATE_ID: z.string().optional(),
-      MSG91_SENDER_ID: z.string().optional(),
-    })
-  : z.object({
-      MSG91_AUTH_KEY: z
-        .string()
-        .min(1, "MSG91_AUTH_KEY is required in production"),
-      MSG91_OTP_TEMPLATE_ID: z
-        .string()
-        .min(1, "MSG91_OTP_TEMPLATE_ID is required in production"),
-      MSG91_TRANSACTION_TEMPLATE_ID: z
-        .string()
-        .min(1, "MSG91_TRANSACTION_TEMPLATE_ID is required in production"),
-      MSG91_SENDER_ID: z
-        .string()
-        .min(1, "MSG91_SENDER_ID is required in production")
-        .default("RWDLOP"),
-    });
+const msg91Schema = z.object({
+  MSG91_AUTH_KEY: z.string().optional(),
+  MSG91_OTP_TEMPLATE_ID: z.string().optional(),
+  MSG91_TRANSACTION_TEMPLATE_ID: z.string().optional(),
+  MSG91_SENDER_ID: z.string().optional(),
+});
 
 const serverOnlySchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z
