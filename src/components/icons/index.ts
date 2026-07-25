@@ -51,6 +51,7 @@ export {
 
   /* ─── Business ───────────────────────────────────────────────────────────── */
   User,
+  UserPlus,
   Users,
   Store,
   CreditCard,

@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * BottomNavigation — Mobile bottom navigation bar.
+ * BottomNavigation — Premium floating mobile bottom navigation bar.
  *
- * Floating glass material, rounded, 5 items max.
- * Source: 09_UI_UX_Specification §14 — Bottom Navigation
+ * Floating glass material, rounded, 5 items max, with a raised FAB center button.
+ * Source: Reference project BottomNav + 09_UI_UX_Specification §14
  *
  * Generic component — accepts items as props.
  * No business route bindings.
@@ -29,6 +29,8 @@ export interface BottomNavItem {
   href?: string;
   /** Custom element (e.g., the center "+" button) */
   custom?: ReactNode;
+  /** Whether this is the center FAB action */
+  isFab?: boolean;
 }
 
 interface BottomNavigationProps {
@@ -41,8 +43,9 @@ export function BottomNavigation({ items, className }: BottomNavigationProps) {
     <nav
       className={cn(
         "fixed bottom-4 left-1/2 z-40 -translate-x-1/2",
-        "flex items-center gap-1 rounded-3xl px-2 py-1.5",
-        "border border-border/50 bg-background/85 backdrop-blur-xl",
+        "flex h-[72px] w-[calc(100%-32px)] max-w-[400px] items-center justify-around",
+        "rounded-3xl px-2",
+        "bg-background/95 backdrop-blur-xl",
         "shadow-[var(--shadow-float)]",
         "pb-safe",
         className,
@@ -50,37 +53,54 @@ export function BottomNavigation({ items, className }: BottomNavigationProps) {
       aria-label="Main navigation"
     >
       {items.map((item) => {
+        /* ── Center FAB ── */
         if (item.custom) {
           return (
-            <div key={item.key} className="px-1">
+            <div
+              key={item.key}
+              className="relative flex items-center justify-center min-w-[60px] h-full"
+            >
               {item.custom}
             </div>
           );
         }
 
         const Icon = item.icon;
-        const Component = item.href ? "a" : "button";
+        const isActive = item.active;
 
         return (
-          <Component
+          <button
             key={item.key}
-            href={item.href}
+            type="button"
             onClick={item.onClick}
             className={cn(
-              "flex flex-col items-center justify-center gap-0.5 rounded-2xl px-3 py-1.5 transition-colors",
-              "min-w-[48px] touch-target",
-              item.active
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:text-foreground",
+              "flex flex-col items-center justify-center gap-[3px] w-[60px] h-full",
+              "transition-all duration-150 cursor-pointer select-none relative",
+              isActive
+                ? "text-primary"
+                : "text-muted-foreground/70 hover:text-muted-foreground",
             )}
-            aria-current={item.active ? "page" : undefined}
+            aria-current={isActive ? "page" : undefined}
             aria-label={item.label}
           >
-            <Icon className="size-5" strokeWidth={item.active ? 2.5 : 2} />
-            <span className="text-[10px] font-medium leading-tight">
+            <Icon
+              className="size-[22px]"
+              strokeWidth={isActive ? 2.5 : 1.8}
+              fill={isActive ? "currentColor" : "none"}
+            />
+            <span
+              className={cn(
+                "text-[10px] font-semibold leading-none",
+                isActive && "text-primary",
+              )}
+            >
               {item.label}
             </span>
-          </Component>
+            {/* Active dot indicator */}
+            {isActive && (
+              <div className="absolute bottom-[6px] w-1 h-1 rounded-full bg-primary" />
+            )}
+          </button>
         );
       })}
     </nav>

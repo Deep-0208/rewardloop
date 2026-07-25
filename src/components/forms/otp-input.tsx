@@ -159,11 +159,11 @@ export function OTPInput({
             onKeyDown={(e) => handleKeyDown(i, e)}
             onPaste={i === 0 ? handlePaste : undefined}
             className={cn(
-              "size-12 rounded-xl border border-input bg-transparent text-center text-lg font-semibold transition-colors outline-none",
+              "size-14 rounded-2xl border border-input bg-transparent text-center text-xl font-semibold transition-colors outline-none",
               "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
               "disabled:pointer-events-none disabled:opacity-50",
               error &&
-                "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20",
+                "border-destructive text-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 animate-shake",
             )}
           />
         ))}

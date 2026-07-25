@@ -23,7 +23,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
         <div
           aria-hidden="true"
           className={cn(
-            "flex items-center justify-center bg-muted border border-r-0 rounded-l-md px-3 text-muted-foreground text-sm font-medium",
+            "flex items-center justify-center bg-muted border border-r-0 rounded-l-xl px-3.5 text-muted-foreground text-sm font-semibold select-none",
             disabled && "opacity-50 cursor-not-allowed",
             hasError && "border-destructive text-destructive",
           )}

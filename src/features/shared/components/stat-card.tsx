@@ -32,14 +32,21 @@ export function StatCard({
   className,
 }: StatCardProps) {
   return (
-    <Card className={cn("border border-border", className)}>
+    <Card
+      className={cn(
+        "border-0 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-soft)] transition-all duration-150 active:scale-[0.97]",
+        className,
+      )}
+    >
       <CardContent className="flex items-start justify-between p-4">
-        <div className="flex flex-col gap-1">
-          <span className="text-sm text-muted-foreground">{label}</span>
-          <span className="text-2xl font-bold tabular-nums text-foreground">
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-medium text-muted-foreground">
+            {label}
+          </span>
+          <span className="text-2xl font-bold tabular-nums text-foreground tracking-tight">
             {value}
           </span>
-          {trend ? <div className="mt-1">{trend}</div> : null}
+          {trend ? <div className="mt-0.5">{trend}</div> : null}
         </div>
         {Icon ? (
           <div

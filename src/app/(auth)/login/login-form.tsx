@@ -4,17 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -30,6 +21,7 @@ import {
   type PhoneSchemaInput,
 } from "@/features/auth/schemas/phone-schema";
 import { sendOTP } from "@/features/auth/actions/send-otp";
+import { Gift } from "@/components/icons";
 
 export default function LoginForm({
   initialPhone = "",
@@ -63,71 +55,80 @@ export default function LoginForm({
   const isFormDisabled = isPending || !form.formState.isValid;
 
   return (
-    <Card className="w-full max-w-md shadow-lg border bg-card rounded-xl">
-      <CardHeader className="text-center space-y-2">
-        <div className="text-xl font-bold tracking-tight text-primary mb-2">
-          RewardLoop
+    <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+      <div className="w-full max-w-[400px] mx-auto">
+        {/* Brand Header */}
+        <div className="flex flex-col items-center gap-6 mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {/* Brand Icon */}
+          <div className="flex size-16 items-center justify-center rounded-2xl bg-primary shadow-[var(--shadow-hero)]">
+            <Gift className="size-8 text-primary-foreground" strokeWidth={2} />
+          </div>
+
+          {/* App Name & Tagline */}
+          <div className="text-center">
+            <h1 className="text-[28px] font-bold tracking-tight text-foreground leading-tight">
+              RewardLoop
+            </h1>
+            <p className="mt-2 text-[15px] text-muted-foreground font-normal">
+              Reward your regulars
+            </p>
+          </div>
         </div>
-        <CardTitle className="text-2xl font-bold tracking-tight">
-          Welcome back
-        </CardTitle>
-        <CardDescription>
-          Enter your mobile number to securely log in or create an account.
-        </CardDescription>
-      </CardHeader>
 
-      <CardContent>
-        {serverError && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{serverError}</AlertDescription>
-          </Alert>
-        )}
+        {/* Login Form */}
+        <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+          {serverError && (
+            <Alert variant="destructive">
+              <AlertDescription>{serverError}</AlertDescription>
+            </Alert>
+          )}
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <PhoneInput
-                      disabled={isPending}
-                      hasError={!!serverError || !!form.formState.errors.phone}
-                      {...field}
-                      onChange={(val) => {
-                        field.onChange(val);
-                        if (serverError) setServerError(null);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button
-              type="submit"
-              className="w-full h-12 text-base font-medium"
-              disabled={isFormDisabled}
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex flex-col gap-6"
             >
-              {isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                "Send OTP"
-              )}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-      <CardFooter className="justify-center">
-        <p className="text-xs text-center text-muted-foreground">
-          By continuing, you agree to our Terms of Service and Privacy Policy.
-        </p>
-      </CardFooter>
-    </Card>
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <PhoneInput
+                        disabled={isPending}
+                        hasError={
+                          !!serverError || !!form.formState.errors.phone
+                        }
+                        {...field}
+                        onChange={(val) => {
+                          field.onChange(val);
+                          if (serverError) setServerError(null);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="submit"
+                size="full"
+                disabled={isFormDisabled}
+                loading={isPending}
+                className="shadow-[var(--shadow-hero)]"
+              >
+                Continue
+              </Button>
+            </form>
+          </Form>
+
+          {/* Terms */}
+          <p className="text-[12px] text-muted-foreground text-center leading-relaxed max-w-[280px] mx-auto">
+            By continuing, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

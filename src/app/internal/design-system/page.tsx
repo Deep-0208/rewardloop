@@ -1,3 +1,5 @@
+"use client";
+
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/layout";
 import {
@@ -28,6 +30,7 @@ import {
   TransactionCard,
 } from "@/features/shared/components";
 import { Users } from "@/components/icons";
+import { BottomNavigation } from "@/components/navigation";
 
 /**
  * Design System Showcase
@@ -156,6 +159,23 @@ export default function DesignSystemPage() {
                 timestamp="10:45 AM"
               />
             </Stack>
+          </section>
+
+          <section>
+            <Title className="mb-4">6. Navigation & Layout Controls</Title>
+            <div className="relative h-24 rounded-xl border bg-muted/20 overflow-hidden flex items-center justify-center p-4">
+              <span className="text-xs text-muted-foreground mb-12">
+                Floating Bottom Navigation Bar:
+              </span>
+              <BottomNavigation
+                items={[
+                  { key: "home", label: "Home", icon: Users, active: true },
+                  { key: "visit", label: "Add Visit", icon: Users },
+                  { key: "more", label: "More", icon: Users },
+                ]}
+                className="absolute bottom-2 translate-x-0 left-auto"
+              />
+            </div>
           </section>
         </Stack>
       </div>

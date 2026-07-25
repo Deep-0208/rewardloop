@@ -4,17 +4,9 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft } from "@/components/icons";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -55,8 +47,6 @@ export default function VerifyForm({ phone }: { phone: string }) {
         setServerError(result.error);
         return;
       }
-
-      // Navigate to destination (either Dashboard or Onboarding)
       router.push(result.data.redirectTo);
     });
   };
@@ -86,92 +76,89 @@ export default function VerifyForm({ phone }: { phone: string }) {
     .replace(/^(\d{5})/, "$1 ");
 
   return (
-    <Card className="w-full max-w-md shadow-lg border bg-card rounded-xl">
-      <CardHeader className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
+    <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+      <div className="w-full max-w-[400px] mx-auto">
+        {/* Back + Header */}
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <button
             onClick={handleBack}
-            className="pl-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
             disabled={isPending}
+            className="flex items-center gap-1 text-[14px] text-muted-foreground hover:text-foreground transition-colors duration-150 mb-8 cursor-pointer disabled:opacity-50"
+            aria-label="Go back to phone number"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="size-5" />
             Back
-          </Button>
-          <div className="text-lg font-bold tracking-tight text-primary">
-            RewardLoop
+          </button>
+
+          <div className="text-center mb-8">
+            <h2 className="text-[22px] font-semibold text-foreground">
+              Verify your number
+            </h2>
+            <p className="mt-2 text-[14px] text-muted-foreground">
+              We sent a code to{" "}
+              <span className="font-medium text-foreground">
+                +91 {maskedPhone}
+              </span>
+            </p>
           </div>
         </div>
 
-        <div className="space-y-2 text-center">
-          <CardTitle className="text-2xl font-bold tracking-tight">
-            Verify your number
-          </CardTitle>
-          <CardDescription>
-            We&apos;ve sent a 6-digit code to{" "}
-            <span className="font-medium text-foreground">
-              +91 {maskedPhone}
-            </span>
-          </CardDescription>
-        </div>
-      </CardHeader>
+        {/* OTP Form */}
+        <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+          {serverError && (
+            <Alert variant="destructive">
+              <AlertDescription>{serverError}</AlertDescription>
+            </Alert>
+          )}
 
-      <CardContent>
-        {serverError && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{serverError}</AlertDescription>
-          </Alert>
-        )}
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="otp"
-              render={({ field }) => (
-                <FormItem className="flex flex-col items-center justify-center space-y-2">
-                  <FormControl>
-                    <OTPInput
-                      value={field.value}
-                      disabled={isPending}
-                      hasError={!!serverError || !!form.formState.errors.otp}
-                      onChange={(value) => {
-                        field.onChange(value);
-                        if (serverError) setServerError(null);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-center" />
-                </FormItem>
-              )}
-            />
-
-            <Button
-              type="submit"
-              className="w-full h-12 text-base font-medium"
-              disabled={isFormDisabled}
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex flex-col gap-6"
             >
-              {isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Verifying...
-                </>
-              ) : (
-                "Verify & Continue"
-              )}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
+              <FormField
+                control={form.control}
+                name="otp"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col items-center justify-center space-y-2">
+                    <FormControl>
+                      <OTPInput
+                        value={field.value}
+                        disabled={isPending}
+                        hasError={!!serverError || !!form.formState.errors.otp}
+                        onChange={(value) => {
+                          field.onChange(value);
+                          if (serverError) setServerError(null);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-center" />
+                  </FormItem>
+                )}
+              />
 
-      <CardFooter className="justify-center pt-2">
-        <ResendTimer
-          initialSeconds={30}
-          onResend={handleResend}
-          isResending={isPending}
-        />
-      </CardFooter>
-    </Card>
+              <Button
+                type="submit"
+                size="full"
+                disabled={isFormDisabled}
+                loading={isPending}
+                className="shadow-[var(--shadow-hero)]"
+              >
+                Verify & Continue
+              </Button>
+            </form>
+          </Form>
+
+          {/* Resend Timer */}
+          <div className="flex justify-center">
+            <ResendTimer
+              initialSeconds={30}
+              onResend={handleResend}
+              isResending={isPending}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

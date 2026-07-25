@@ -21,7 +21,9 @@ export function StickyCTA({ children, className }: StickyCTAProps) {
   return (
     <div
       className={cn(
-        "sticky bottom-0 z-10 border-t border-border bg-background px-4 py-3 pb-safe",
+        "sticky bottom-0 z-10 border-t border-border/30 bg-background/90 backdrop-blur-xl px-4 py-3",
+        "pb-[calc(12px+env(safe-area-inset-bottom,0px))]",
+        "shadow-[0_-8px_32px_rgba(0,0,0,0.08)]",
         className,
       )}
     >

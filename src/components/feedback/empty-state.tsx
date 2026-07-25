@@ -28,7 +28,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-4 text-center",
+        "flex flex-col items-center justify-center gap-4 text-center animate-fade-in",
         compact ? "gap-3 px-4 py-6" : "flex-1 px-8 py-12",
         className,
       )}
@@ -36,8 +36,8 @@ export function EmptyState({
       {icon ? (
         <div
           className={cn(
-            "flex items-center justify-center rounded-2xl bg-muted",
-            compact ? "size-12" : "size-16",
+            "flex items-center justify-center rounded-2xl bg-primary/8",
+            compact ? "size-14" : "size-16",
           )}
         >
           {icon}
@@ -47,7 +47,7 @@ export function EmptyState({
       <div className="flex flex-col gap-1">
         <h2
           className={cn(
-            "font-semibold text-foreground",
+            "font-bold text-foreground tracking-tight",
             compact ? "text-base" : "text-lg",
           )}
         >
@@ -55,15 +55,15 @@ export function EmptyState({
         </h2>
         <p
           className={cn(
-            "text-muted-foreground",
-            compact ? "text-xs" : "max-w-xs text-sm",
+            "text-muted-foreground leading-relaxed",
+            compact ? "text-xs" : "max-w-[240px] text-sm",
           )}
         >
           {description}
         </p>
       </div>
 
-      {action ? <div className="mt-1">{action}</div> : null}
+      {action ? <div className="mt-2">{action}</div> : null}
     </div>
   );
 }

@@ -1,15 +1,19 @@
 import { AppShell } from "@/components/app-shell";
+import { AppNavigation } from "@/components/navigation/app-navigation";
 
 /**
  * App layout — wraps all main application pages.
- *
- * Provides the AppShell container. Bottom navigation will be added
- * in a later sprint when the BottomNavigation component is built.
+ * Provides the AppShell container and active-route persistent BottomNavigation.
  */
 export default function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <AppShell>{children}</AppShell>;
+  return (
+    <AppShell>
+      {children}
+      <AppNavigation />
+    </AppShell>
+  );
 }

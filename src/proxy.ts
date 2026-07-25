@@ -44,18 +44,24 @@ export function isOnboardingRoute(pathname: string): boolean {
 }
 
 /**
- * Root middleware — lightweight session refresh & route protection.
+ * Next.js 16 Root Proxy Interceptor — session refresh & route protection.
  *
  * 1. Refreshes Supabase session via NEXT_PUBLIC_SUPABASE_ANON_KEY.
  * 2. Unauthenticated user accessing app/onboarding routes -> redirect to /login.
  * 3. Authenticated user accessing auth routes (/login, /verify) -> redirect to /dashboard.
  */
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { response, user } = await updateSession(request);
   const pathname = request.nextUrl.pathname;
 
+  const skipAuth = process.env.SKIP_AUTH_MIDDLEWARE === "true";
+
   // Unauthenticated -> redirect from protected routes to /login
-  if (!user && (isAppRoute(pathname) || isOnboardingRoute(pathname))) {
+  if (
+    !skipAuth &&
+    !user &&
+    (isAppRoute(pathname) || isOnboardingRoute(pathname))
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

@@ -11,7 +11,7 @@ export function ScreenContainer({ children, className }: PropsWithChildren) {
   return (
     <main
       className={cn(
-        "flex flex-1 flex-col gap-6 overflow-y-auto px-4 py-6",
+        "flex flex-1 flex-col gap-6 overflow-y-auto px-4 py-6 pb-28 animate-fade-in",
         className,
       )}
     >

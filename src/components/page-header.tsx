@@ -24,12 +24,12 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   return (
-    <header className={cn("flex items-center gap-3 px-4 py-3", className)}>
+    <header className={cn("flex items-center gap-3 px-4 pt-4 pb-2", className)}>
       {onBack ? (
         <button
           type="button"
           onClick={onBack}
-          className="touch-target flex items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted"
+          className="touch-target flex items-center justify-center rounded-xl text-foreground transition-all duration-150 hover:bg-muted active:scale-95"
           aria-label="Go back"
         >
           <ArrowLeft className="size-5" />
@@ -37,11 +37,11 @@ export function PageHeader({
       ) : null}
 
       <div className="flex-1">
-        <h1 className="text-xl font-semibold leading-7 text-foreground">
+        <h1 className="text-2xl font-bold leading-tight tracking-tight text-foreground">
           {title}
         </h1>
         {subtitle ? (
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>
         ) : null}
       </div>
 

@@ -34,9 +34,9 @@ export const OTPInput = React.forwardRef<
             key={index}
             index={index}
             className={cn(
-              "w-10 h-12 sm:w-12 sm:h-14 text-lg sm:text-xl rounded-md border",
+              "w-11 h-13 sm:w-12 sm:h-14 text-xl sm:text-2xl rounded-xl border font-semibold",
               hasError &&
-                "border-destructive text-destructive focus-visible:ring-destructive",
+                "border-destructive text-destructive focus-visible:ring-destructive animate-shake",
             )}
           />
         ))}

@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { CreditCard, Wallet } from "@/components/icons";
 
 interface TransactionCardProps {
@@ -43,11 +42,14 @@ export function TransactionCard({
   const { label: methodLabel, icon: MethodIcon } =
     paymentMethodConfig[paymentMethod];
 
+  const initial = customerName.charAt(0).toUpperCase();
+
   return (
     <Card
       className={cn(
-        "border border-border transition-colors",
-        onClick && "cursor-pointer hover:bg-muted/50",
+        "border-0 shadow-[var(--shadow-card)] transition-all duration-150",
+        onClick &&
+          "cursor-pointer hover:shadow-[var(--shadow-soft)] active:scale-[0.98]",
         className,
       )}
       onClick={onClick}
@@ -65,29 +67,43 @@ export function TransactionCard({
       }
     >
       <CardContent className="flex items-center gap-3 p-4">
+        {/* Avatar initial */}
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+          {initial}
+        </div>
+
         <div className="flex flex-1 flex-col gap-1">
-          <span className="text-sm font-medium text-foreground">
+          <span className="text-sm font-semibold text-foreground truncate leading-tight">
             {customerName}
           </span>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">{timestamp}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {timestamp}
+            </span>
             {rewardUsed ? (
-              <Badge
-                variant="secondary"
-                className="h-5 px-1.5 text-[10px] font-medium"
-              >
-                -{rewardUsed}
-              </Badge>
+              <>
+                <span className="text-[8px] text-muted-foreground">•</span>
+                <span className="text-xs font-medium tabular-nums text-[var(--color-success)]">
+                  -{rewardUsed}
+                </span>
+              </>
             ) : null}
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-1">
-          <span className="text-sm font-semibold tabular-nums text-foreground">
+        <div className="flex flex-col items-end gap-1.5">
+          <span className="text-base font-bold tabular-nums text-foreground tracking-tight">
             {finalPaid}
           </span>
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <MethodIcon className="size-3" aria-hidden="true" />
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider leading-none",
+              paymentMethod === "online"
+                ? "bg-[var(--color-success)]/10 text-[var(--color-success)]"
+                : "bg-muted text-muted-foreground",
+            )}
+          >
+            <MethodIcon className="size-2.5" aria-hidden="true" />
             {methodLabel}
           </span>
         </div>
