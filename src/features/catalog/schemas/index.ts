@@ -11,7 +11,7 @@ import { z } from "zod";
 
 /** Schema for a single catalog item row from the database */
 export const catalogItemSchema = z.object({
-  id: z.uuid(),
+  id: z.string().min(1),
   name: z.string().min(1),
   price: z.int().positive(),
   type: z.enum(["service", "product"]),
