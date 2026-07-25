@@ -40,15 +40,16 @@ export async function createCustomer(
 
   const { data: userData, error: userFetchError } = await supabase
     .from("users")
-    .select("business_id")
+    .select("id, business_id")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
-  if (userFetchError || !userData?.business_id) {
+  if (userFetchError || !userData?.business_id || !userData?.id) {
     throw new AppError("User profile not found", "AUTH_REQUIRED");
   }
 
   const businessId = userData.business_id as string;
+  const dbUserId = userData.id as string;
 
   // Check if customer exists for THIS business first to avoid duplicate records
   const existing = await findCustomerByPhone(supabase, phone, businessId);
@@ -65,7 +66,7 @@ export async function createCustomer(
       p_phone: phone,
       p_name: name || null,
       p_business_id: businessId,
-      p_created_by: user.id,
+      p_created_by: dbUserId,
     })
     .single();
 
