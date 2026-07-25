@@ -66,11 +66,13 @@ export async function isOtpRateLimited(phone: string): Promise<boolean> {
     },
   );
 
-  if (error || allowed === false) {
-    return true; // Rate limited by DB
+  if (error) {
+    console.error("[isOtpRateLimited] Database rate-limit RPC error:", error);
+    // Do not block user login if DB rate-limiting check fails due to RPC error
+    return false;
   }
 
-  return false;
+  return allowed === false;
 }
 
 export async function setOtpCooldownCookie() {
