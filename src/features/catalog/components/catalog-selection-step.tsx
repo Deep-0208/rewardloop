@@ -258,30 +258,42 @@ export function CatalogSelectionStep() {
 
         {/* Category Filters */}
         <div className="flex gap-2">
-          <Button
-            variant={activeCategory === "all" ? "default" : "outline"}
-            size="sm"
-            className="rounded-full h-8 px-4 text-xs font-medium"
+          <button
+            type="button"
+            className={cn(
+              "h-8 rounded-full px-4 text-xs font-semibold transition-all duration-200 cursor-pointer active:scale-95",
+              activeCategory === "all"
+                ? "bg-primary text-primary-foreground shadow-[0_2px_10px_rgba(79,70,229,0.3)]"
+                : "bg-card border border-border/60 text-muted-foreground hover:border-primary/30 hover:text-foreground",
+            )}
             onClick={() => setActiveCategory("all")}
           >
             All
-          </Button>
-          <Button
-            variant={activeCategory === "service" ? "default" : "outline"}
-            size="sm"
-            className="rounded-full h-8 px-4 text-xs font-medium"
+          </button>
+          <button
+            type="button"
+            className={cn(
+              "h-8 rounded-full px-4 text-xs font-semibold transition-all duration-200 cursor-pointer active:scale-95",
+              activeCategory === "service"
+                ? "bg-primary text-primary-foreground shadow-[0_2px_10px_rgba(79,70,229,0.3)]"
+                : "bg-card border border-border/60 text-muted-foreground hover:border-primary/30 hover:text-foreground",
+            )}
             onClick={() => setActiveCategory("service")}
           >
             Services
-          </Button>
-          <Button
-            variant={activeCategory === "product" ? "default" : "outline"}
-            size="sm"
-            className="rounded-full h-8 px-4 text-xs font-medium"
+          </button>
+          <button
+            type="button"
+            className={cn(
+              "h-8 rounded-full px-4 text-xs font-semibold transition-all duration-200 cursor-pointer active:scale-95",
+              activeCategory === "product"
+                ? "bg-primary text-primary-foreground shadow-[0_2px_10px_rgba(79,70,229,0.3)]"
+                : "bg-card border border-border/60 text-muted-foreground hover:border-primary/30 hover:text-foreground",
+            )}
             onClick={() => setActiveCategory("product")}
           >
             Products
-          </Button>
+          </button>
         </div>
       </div>
 

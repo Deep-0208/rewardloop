@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION public.create_customer_with_wallet(
 )
 RETURNS SETOF public.customers
 LANGUAGE plpgsql
-SECURITY INVOKER
+SECURITY DEFINER
 AS $$
 DECLARE
     v_customer public.customers;
@@ -26,3 +26,5 @@ BEGIN
     RETURN NEXT v_customer;
 END;
 $$;
+
+GRANT EXECUTE ON FUNCTION public.create_customer_with_wallet(TEXT, TEXT, UUID, UUID) TO authenticated, service_role;

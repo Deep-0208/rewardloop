@@ -51,7 +51,7 @@ export function CatalogSearchInput({
         placeholder="Search services & products..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-14 pl-9 pr-14"
+        className="h-11 rounded-2xl border-border/60 bg-muted/40 pl-9 pr-10 text-sm focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/20"
       />
 
       {value.length > 0 ? (
