@@ -9,6 +9,10 @@ interface TransactionCardProps {
   finalPaid: string;
   /** Reward used display (e.g., "₹200") */
   rewardUsed?: string;
+  /** Services split (e.g., "₹500") */
+  serviceSubtotal?: string;
+  /** Products split (e.g., "₹500") */
+  productSubtotal?: string;
   /** Payment method */
   paymentMethod: "cash" | "online" | "none";
   /** Transaction timestamp display */
@@ -34,6 +38,8 @@ export function TransactionCard({
   customerName,
   finalPaid,
   rewardUsed,
+  serviceSubtotal,
+  productSubtotal,
   paymentMethod,
   timestamp,
   onClick,
@@ -88,6 +94,16 @@ export function TransactionCard({
                 </span>
               </>
             ) : null}
+            {(serviceSubtotal || productSubtotal) && (
+              <>
+                <span className="text-[8px] text-muted-foreground">•</span>
+                <span className="text-[11px] text-muted-foreground">
+                  {serviceSubtotal && `S: ${serviceSubtotal}`}
+                  {serviceSubtotal && productSubtotal && " | "}
+                  {productSubtotal && `P: ${productSubtotal}`}
+                </span>
+              </>
+            )}
           </div>
         </div>
 

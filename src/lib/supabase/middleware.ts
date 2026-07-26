@@ -5,11 +5,15 @@
  * Called from the root middleware.ts.
  */
 
+/* eslint-disable no-console */
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { validateRewardLoopSession } from "@/features/auth/utils/session-validator";
 
-export async function updateSession(request: NextRequest, requireStrictValidation: boolean = true) {
+export async function updateSession(
+  request: NextRequest,
+  requireStrictValidation: boolean = true,
+) {
   let supabaseResponse = NextResponse.next({ request });
 
   if (
@@ -25,6 +29,10 @@ export async function updateSession(request: NextRequest, requireStrictValidatio
     .some((c) => c.name.startsWith("sb-"));
 
   if (!hasAuthCookie) {
+    console.error(
+      "[MIDDLEWARE REJECT] NO AUTH COOKIE FOUND",
+      request.cookies.getAll(),
+    );
     return { response: supabaseResponse, user: null };
   }
 
@@ -50,9 +58,18 @@ export async function updateSession(request: NextRequest, requireStrictValidatio
   );
 
   const cookieValue = request.cookies.get("rl_sv")?.value;
-  const validation = await validateRewardLoopSession(supabase, cookieValue, requireStrictValidation);
+  const validation = await validateRewardLoopSession(
+    supabase,
+    cookieValue,
+    requireStrictValidation,
+  );
 
   if (!validation.valid) {
+    console.error("[MIDDLEWARE REJECT]", {
+      cookieValue,
+      reason: validation.reason,
+      hasAuthCookie,
+    });
     // Tampered, missing cookie, revoked, or suspended -> revoke session
     await supabase.auth.signOut();
     supabaseResponse.cookies.delete("rl_sv");

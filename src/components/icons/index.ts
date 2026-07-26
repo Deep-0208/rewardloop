@@ -59,6 +59,7 @@ export {
   Gift,
   Tag,
   Scissors,
+  Package,
   IndianRupee,
   Hash,
   Percent,

@@ -16,7 +16,7 @@ export default async function CatalogManagementPage() {
   if (!result.success) {
     return (
       <ScreenContainer>
-        <PageHeader title="Service Catalog" />
+        <PageHeader title="Catalog" />
         <Section>
           <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
             <p className="text-sm text-muted-foreground">

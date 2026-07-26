@@ -16,7 +16,7 @@ export const metadata = {
 export default function BusinessOnboardingPage() {
   return (
     <div className="flex min-h-[80vh] items-center justify-center p-4">
-      <Card className="w-full max-w-md border-border/50 bg-background/50 backdrop-blur-xl shadow-xl">
+      <Card className="w-full max-w-xl border-border/50 bg-background/50 backdrop-blur-xl shadow-xl">
         <CardHeader className="space-y-3 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <Store className="h-6 w-6 text-primary" />

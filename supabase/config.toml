@@ -15,3 +15,8 @@ major_version = 15
 
 [studio]
 port = 54323
+
+[auth.sms]
+
+[auth.sms.test_otp]
+"9023833730" = "123456"

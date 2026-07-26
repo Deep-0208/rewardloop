@@ -487,7 +487,7 @@ interface CatalogItem {
   id: UUID;
   catalogId: UUID;
   businessId: UUID;
-  type: "service";
+  type: "service" | "product";
   name: string;
   price: Paise;
   status: "active" | "inactive";
@@ -523,6 +523,7 @@ interface CompleteVisitPayload {
   createdBy: UUID;
   items: {
     catalogItemId: UUID;
+    catalogItemType: "service" | "product";
     itemName: string;
     quantity: number;
     unitPrice: Paise;
@@ -565,6 +566,7 @@ interface TransactionItem {
   transactionId: UUID;
   businessId: UUID;
   catalogItemId: UUID | null;
+  catalogItemType: "service" | "product";
   itemName: string;
   quantity: number;
   unitPrice: Paise;
@@ -787,11 +789,12 @@ BEGIN
   FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
   LOOP
     INSERT INTO transaction_items (
-      transaction_id, business_id, catalog_item_id, item_name, quantity, unit_price, total_price
+      transaction_id, business_id, catalog_item_id, catalog_item_type, item_name, quantity, unit_price, total_price
     ) VALUES (
       v_transaction_id,
       p_business_id,
       (v_item->>'catalog_item_id')::UUID,
+      (v_item->>'catalog_item_type')::catalog_item_type_enum,
       v_item->>'item_name',
       (v_item->>'quantity')::INTEGER,
       (v_item->>'unit_price')::INTEGER,

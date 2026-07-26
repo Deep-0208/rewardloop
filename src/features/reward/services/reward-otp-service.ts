@@ -55,7 +55,14 @@ export async function sendRewardOtp(
     );
   }
 
-  const otp = randomInt(100000, 1_000_000).toString();
+  let otp = randomInt(100000, 1_000_000).toString();
+  if (
+    process.env.NODE_ENV !== "production" &&
+    context.customer.phone === "9023833730"
+  ) {
+    otp = "123456";
+  }
+
   const expiresAt = new Date(
     Date.now() + OTP_TTL_SECONDS * 1_000,
   ).toISOString();
@@ -78,14 +85,25 @@ export async function sendRewardOtp(
     throw new AppError("Unable to send OTP. Please try again.", "SERVER_ERROR");
   }
 
-  const { error: deliveryError } = await adminSupabase.functions.invoke("send-otp", {
-    body: {
-      phone: context.customer.phone,
-      otp,
-      templateId: process.env.MSG91_OTP_TEMPLATE_ID,
-      purpose: "reward_redemption",
+  if (
+    process.env.NODE_ENV !== "production" &&
+    context.customer.phone === "9023833730"
+  ) {
+    // Skip MSG91 delivery for test phone number
+    return { expiresAt };
+  }
+
+  const { error: deliveryError } = await adminSupabase.functions.invoke(
+    "send-otp",
+    {
+      body: {
+        phone: context.customer.phone,
+        otp,
+        templateId: process.env.MSG91_OTP_TEMPLATE_ID,
+        purpose: "reward_redemption",
+      },
     },
-  });
+  );
   if (deliveryError) {
     await adminSupabase
       .from("otp_requests")

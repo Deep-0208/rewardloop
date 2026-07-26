@@ -168,8 +168,8 @@ CREATE TYPE user_status_enum AS ENUM (
 
 -- Catalog item type
 CREATE TYPE catalog_item_type_enum AS ENUM (
-  'service'
-  -- 'product' reserved for Phase 2
+  'service',
+  'product'
 );
 
 -- Catalog item status
@@ -514,6 +514,7 @@ CREATE TABLE transaction_items (
   -- Denormalized for direct RLS enforcement.
   catalog_item_id UUID REFERENCES catalog_items(id) ON DELETE SET NULL,
   -- Nullable: if catalog item is deleted, historical record is preserved.
+  catalog_item_type catalog_item_type_enum NOT NULL DEFAULT 'service',
   item_name       VARCHAR(100) NOT NULL,
   -- Snapshot of name at billing time. Immutable.
   quantity        INTEGER NOT NULL DEFAULT 1 CHECK (quantity >= 1),

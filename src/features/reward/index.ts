@@ -1,6 +1,6 @@
 /** Reward Calculation feature public API. */
 
-export { RewardCalculationStep } from "./components/reward-calculation-step";
+export * from "./actions";
 export {
   calculateReward,
   previewReward,

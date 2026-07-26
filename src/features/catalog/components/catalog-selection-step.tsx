@@ -1,12 +1,3 @@
-/**
- * RewardLoop — Catalog Selection Step.
- *
- * Main container for Step 2 of the Add Visit wizard.
- * Orchestrates search, catalog list, cart drawer, and footer.
- *
- * @module features/catalog/components/catalog-selection-step
- */
-
 "use client";
 
 import {
@@ -35,6 +26,7 @@ import { CatalogItemCard } from "./catalog-item-card";
 import { CatalogSearchInput } from "./catalog-search-input";
 import { CartSummaryFooter } from "./cart-summary-footer";
 import { CartItemRow } from "./cart-item-row";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 /* ─── Fetch Reducer ─────────────────────────────────────────────────────────── */
 
@@ -62,16 +54,8 @@ function fetchReducer(state: FetchState, action: FetchAction): FetchState {
 
 /**
  * CatalogSelectionStep — Step 2 of the /visit wizard.
- *
- * Flow:
- * 1. Fetches catalog on mount.
- * 2. Client-side search filtering (instant, case-insensitive, partial).
- * 3. Tap-to-add items to cart (via billing store).
- * 4. Cart drawer for quantity adjustment.
- * 5. Continue to Reward Calculation step.
  */
 export function CatalogSelectionStep() {
-  /* ─── Fetch State ────────────────────────────────────────────────────────── */
   const [fetchState, dispatch] = useReducer(fetchReducer, {
     catalog: [],
     isLoading: true,
@@ -80,16 +64,16 @@ export function CatalogSelectionStep() {
   const { catalog, isLoading, error } = fetchState;
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<
-    "all" | "service" | "product"
-  >("all");
+  const [activeTab, setActiveTab] = useState<"service" | "product">("service");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [, startTransition] = useTransition();
 
   /* ─── Store ────────────────────────────────────────────────────────────── */
-  const items = useBillingStore((s) => s.items);
-  const addItem = useBillingStore((s) => s.addItem);
-  const updateQuantity = useBillingStore((s) => s.updateQuantity);
+  const addService = useBillingStore((s) => s.addService);
+  const addProduct = useBillingStore((s) => s.addProduct);
+  const updateServiceQuantity = useBillingStore((s) => s.updateServiceQuantity);
+  const updateProductQuantity = useBillingStore((s) => s.updateProductQuantity);
+  const getCartItems = useBillingStore((s) => s.getCartItems);
   const setStep = useBillingStore((s) => s.setStep);
   const getSubtotal = useBillingStore((s) => s.getSubtotal);
   const getTotalItems = useBillingStore((s) => s.getTotalItems);
@@ -125,15 +109,9 @@ export function CatalogSelectionStep() {
   }, []);
 
   /* ─── Search & Category Filtering ──────────────────────────────────────── */
-  const filteredCatalog = useMemo(() => {
-    let result = catalog;
+  const currentTabCatalog = useMemo(() => {
+    let result = catalog.filter((item) => item.type === activeTab);
 
-    // 1. Filter by category
-    if (activeCategory !== "all") {
-      result = result.filter((item) => item.type === activeCategory);
-    }
-
-    // 2. Filter by search query
     const trimmed = searchQuery.trim().toLowerCase();
     if (trimmed.length > 0) {
       result = result.filter((item) =>
@@ -142,7 +120,7 @@ export function CatalogSelectionStep() {
     }
 
     return result;
-  }, [catalog, searchQuery, activeCategory]);
+  }, [catalog, searchQuery, activeTab]);
 
   /* ─── Handlers ─────────────────────────────────────────────────────────── */
   const handleTapItem = useCallback(
@@ -151,19 +129,27 @@ export function CatalogSelectionStep() {
       if (!item) return;
 
       startTransition(() => {
-        addItem({
-          catalogItemId: item.id,
-          name: item.name,
-          unitPrice: item.price,
-        });
+        if (item.type === "service") {
+          addService({
+            catalogItemId: item.id,
+            name: item.name,
+            unitPrice: item.price,
+          });
+        } else {
+          addProduct({
+            catalogItemId: item.id,
+            name: item.name,
+            unitPrice: item.price,
+          });
+        }
       });
     },
-    [catalog, addItem],
+    [catalog, addService, addProduct],
   );
 
   const handleContinue = useCallback(() => {
     if (getTotalItems() === 0) return;
-    setStep("reward");
+    setStep("summary");
   }, [getTotalItems, setStep]);
 
   const handleBack = useCallback(() => {
@@ -171,6 +157,7 @@ export function CatalogSelectionStep() {
   }, [setStep]);
 
   /* ─── Quantity lookup for cards ─────────────────────────────────────────── */
+  const items = getCartItems();
   const quantityMap = useMemo(() => {
     const map = new Map<string, number>();
     for (const item of items) {
@@ -241,76 +228,50 @@ export function CatalogSelectionStep() {
   /* ─── Render: Main ──────────────────────────────────────────────────────── */
   return (
     <div className="flex flex-1 flex-col">
-      {/* Sticky Header */}
       <PageHeader
-        title="Select Services & Products"
-        subtitle="Step 2 of 4"
+        title="Select Items"
+        subtitle="Step 2 of 3"
         onBack={handleBack}
       />
 
-      {/* Sticky Search & Filters */}
-      <div className="sticky top-0 z-30 bg-background/95 px-4 pb-3 backdrop-blur-sm supports-backdrop-filter:bg-background/80 flex flex-col gap-3">
+      <div className="sticky top-0 z-30 bg-background/95 px-[var(--spacing-md)] pb-3 pt-[var(--spacing-md)] backdrop-blur-sm supports-backdrop-filter:bg-background/80 flex flex-col gap-[var(--spacing-sm)]">
         <CatalogSearchInput
           value={searchQuery}
           onChange={setSearchQuery}
           onClear={() => setSearchQuery("")}
         />
 
-        {/* Category Filters */}
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className={cn(
-              "h-8 rounded-full px-4 text-xs font-semibold transition-all duration-200 cursor-pointer active:scale-95",
-              activeCategory === "all"
-                ? "bg-primary text-primary-foreground shadow-[0_2px_10px_rgba(79,70,229,0.3)]"
-                : "bg-card border border-border/60 text-muted-foreground hover:border-primary/30 hover:text-foreground",
-            )}
-            onClick={() => setActiveCategory("all")}
-          >
-            All
-          </button>
-          <button
-            type="button"
-            className={cn(
-              "h-8 rounded-full px-4 text-xs font-semibold transition-all duration-200 cursor-pointer active:scale-95",
-              activeCategory === "service"
-                ? "bg-primary text-primary-foreground shadow-[0_2px_10px_rgba(79,70,229,0.3)]"
-                : "bg-card border border-border/60 text-muted-foreground hover:border-primary/30 hover:text-foreground",
-            )}
-            onClick={() => setActiveCategory("service")}
-          >
-            Services
-          </button>
-          <button
-            type="button"
-            className={cn(
-              "h-8 rounded-full px-4 text-xs font-semibold transition-all duration-200 cursor-pointer active:scale-95",
-              activeCategory === "product"
-                ? "bg-primary text-primary-foreground shadow-[0_2px_10px_rgba(79,70,229,0.3)]"
-                : "bg-card border border-border/60 text-muted-foreground hover:border-primary/30 hover:text-foreground",
-            )}
-            onClick={() => setActiveCategory("product")}
-          >
-            Products
-          </button>
-        </div>
+        <Tabs
+          defaultValue="service"
+          value={activeTab}
+          onValueChange={(val) => setActiveTab(val as "service" | "product")}
+          className="w-full"
+        >
+          <TabsList className="w-full grid grid-cols-2 bg-surface p-1 rounded-[16px]">
+            <TabsTrigger value="service" className="rounded-[12px]">
+              Services
+            </TabsTrigger>
+            <TabsTrigger value="product" className="rounded-[12px]">
+              Products
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
-      {/* Scrollable Catalog Grid (2 Boxes) */}
       <div
-        className="grid grid-cols-2 gap-3.5 overflow-y-auto px-4 pb-32 flex-1"
+        className="grid grid-cols-2 gap-[var(--spacing-s)] overflow-y-auto px-[var(--spacing-md)] pb-[160px] flex-1 mt-2"
         role="list"
         aria-label="Catalog items"
       >
-        {filteredCatalog.length === 0 ? (
+        {currentTabCatalog.length === 0 ? (
           <div className="col-span-2 flex flex-col items-center justify-center py-12 text-center">
             <p className="text-sm text-muted-foreground">
-              No items match your search for &ldquo;{searchQuery.trim()}&rdquo;.
+              No {activeTab}s match your search for &ldquo;{searchQuery.trim()}
+              &rdquo;.
             </p>
           </div>
         ) : (
-          filteredCatalog.map((item) => (
+          currentTabCatalog.map((item) => (
             <CatalogItemCard
               key={item.id}
               id={item.id}
@@ -319,14 +280,19 @@ export function CatalogSelectionStep() {
               type={item.type}
               quantityInCart={quantityMap.get(item.id) ?? 0}
               onTap={handleTapItem}
-              onIncrement={(id) => updateQuantity(id, 1)}
-              onDecrement={(id) => updateQuantity(id, -1)}
+              onIncrement={(id) => {
+                if (item.type === "service") updateServiceQuantity(id, 1);
+                else updateProductQuantity(id, 1);
+              }}
+              onDecrement={(id) => {
+                if (item.type === "service") updateServiceQuantity(id, -1);
+                else updateProductQuantity(id, -1);
+              }}
             />
           ))
         )}
       </div>
 
-      {/* Cart Summary Footer */}
       <CartSummaryFooter
         totalItems={getTotalItems()}
         totalQuantity={getTotalQuantity()}
@@ -335,7 +301,6 @@ export function CatalogSelectionStep() {
         onContinue={handleContinue}
       />
 
-      {/* Cart Drawer */}
       <Drawer
         open={isDrawerOpen}
         onOpenChange={setIsDrawerOpen}
@@ -368,8 +333,14 @@ export function CatalogSelectionStep() {
                   name={item.name}
                   unitPrice={item.unitPrice}
                   quantity={item.quantity}
-                  onIncrement={(id) => updateQuantity(id, 1)}
-                  onDecrement={(id) => updateQuantity(id, -1)}
+                  onIncrement={(id) => {
+                    if (item.type === "service") updateServiceQuantity(id, 1);
+                    else updateProductQuantity(id, 1);
+                  }}
+                  onDecrement={(id) => {
+                    if (item.type === "service") updateServiceQuantity(id, -1);
+                    else updateProductQuantity(id, -1);
+                  }}
                 />
               ))
             )}

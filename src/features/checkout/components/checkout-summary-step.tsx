@@ -21,6 +21,7 @@ import {
   Receipt,
   User,
   Tag,
+  Wallet,
 } from "@/components/icons";
 import { ROUTES } from "@/constants/routes";
 import { formatCurrency } from "@/utils";
@@ -35,6 +36,11 @@ import {
   generateCheckoutSummary,
   refreshCheckoutSummary,
 } from "../actions";
+import {
+  formatPaiseForRupeeInput,
+  parseRupeeInputToPaise,
+  sanitizeRupeeInput,
+} from "@/features/reward/utils/reward-input";
 import type {
   CheckoutLineItem,
   CheckoutSummary,
@@ -63,7 +69,7 @@ function CheckoutLine({ item }: { readonly item: CheckoutLineItem }) {
 function CheckoutSummarySkeleton() {
   return (
     <div className="flex flex-1 flex-col">
-      <PageHeader title="Review bill" subtitle="Step 4 of 4" />
+      <PageHeader title="Review bill" subtitle="Step 3 of 3" />
       <div className="flex flex-1 flex-col gap-4 px-4 py-4">
         <Skeleton className="h-20 w-full rounded-xl" />
         <Skeleton className="h-48 w-full rounded-xl" />
@@ -77,7 +83,12 @@ function CheckoutSummarySkeleton() {
 export function CheckoutSummaryStep() {
   const router = useRouter();
   const customer = useBillingStore((state) => state.customer);
-  const items = useBillingStore((state) => state.items);
+  const selectedServices = useBillingStore((state) => state.selectedServices);
+  const selectedProducts = useBillingStore((state) => state.selectedProducts);
+  const items = useMemo(
+    () => [...selectedServices, ...selectedProducts],
+    [selectedServices, selectedProducts],
+  );
   const rewardAppliedPaise = useBillingStore(
     (state) => state.rewardAppliedPaise,
   );
@@ -89,6 +100,9 @@ export function CheckoutSummaryStep() {
   const setPaymentMethod = useBillingStore((state) => state.setPaymentMethod);
   const setOtpVerifiedToken = useBillingStore(
     (state) => state.setOtpVerifiedToken,
+  );
+  const setRewardAppliedPaise = useBillingStore(
+    (state) => state.setRewardAppliedPaise,
   );
   const setStep = useBillingStore((state) => state.setStep);
   const reset = useBillingStore((state) => state.reset);
@@ -106,6 +120,36 @@ export function CheckoutSummaryStep() {
   const [isCompleting, setIsCompleting] = useState(false);
   const [isOtpPending, startOtpTransition] = useTransition();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
+
+  const [rewardInput, setRewardInput] = useState(() =>
+    formatPaiseForRupeeInput(rewardAppliedPaise),
+  );
+
+  const requestedRewardPaise = useMemo(() => {
+    try {
+      return parseRupeeInputToPaise(rewardInput);
+    } catch {
+      return 0;
+    }
+  }, [rewardInput]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (requestedRewardPaise !== rewardAppliedPaise) {
+        setRewardAppliedPaise(requestedRewardPaise);
+      }
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [requestedRewardPaise, rewardAppliedPaise, setRewardAppliedPaise]);
+
+  const inputError = useMemo(() => {
+    if (!summary || requestedRewardPaise === 0) return null;
+    if (requestedRewardPaise < 100) return "Minimum redemption is ₹1.";
+    if (requestedRewardPaise > summary.reward.maxRedeemPaise) {
+      return `This will be limited to ${formatCurrency(summary.reward.maxRedeemPaise)}.`;
+    }
+    return null;
+  }, [summary, requestedRewardPaise]);
 
   const requestInput = useMemo(
     () =>
@@ -165,7 +209,13 @@ export function CheckoutSummaryStep() {
     };
   }, [applySummaryResult, requestSummary]);
 
-  const handleBack = useCallback(() => setStep("reward"), [setStep]);
+  const handleBlur = useCallback(() => {
+    if (summary) {
+      setRewardInput(formatPaiseForRupeeInput(summary.rewardUsedPaise));
+    }
+  }, [summary]);
+
+  const handleBack = useCallback(() => setStep("catalog"), [setStep]);
 
   const handleRetry = useCallback(() => {
     if (!requestInput) return;
@@ -251,7 +301,7 @@ export function CheckoutSummaryStep() {
       <div className="flex flex-1 flex-col">
         <PageHeader
           title="Review bill"
-          subtitle="Step 4 of 4"
+          subtitle="Step 3 of 3"
           onBack={handleBack}
         />
         <EmptyState
@@ -273,7 +323,7 @@ export function CheckoutSummaryStep() {
       <div className="flex flex-1 flex-col">
         <PageHeader
           title="Review bill"
-          subtitle="Step 4 of 4"
+          subtitle="Step 3 of 3"
           onBack={handleBack}
         />
         <ErrorState
@@ -288,15 +338,12 @@ export function CheckoutSummaryStep() {
   const products = summary.items.filter((item) => item.type === "product");
   const effectivePaymentMethod: VisitPaymentMethod =
     summary.finalPayablePaise === 0 ? "none" : paymentMethod;
-  const otpVerified =
-    !summary.requiresOtp ||
-    (otpState === "verified" && Boolean(otpVerifiedToken));
 
   return (
     <div className="flex flex-1 flex-col pb-[120px] bg-muted/10 relative">
       <PageHeader
         title="Review bill"
-        subtitle="Step 4 of 4"
+        subtitle="Step 3 of 3"
         onBack={handleBack}
       />
 
@@ -358,9 +405,126 @@ export function CheckoutSummaryStep() {
           </Card>
         ) : null}
 
+        {/* Rewards Card */}
+        <div className="bg-card rounded-[var(--radius-card)] p-[var(--spacing-md)] mb-[var(--spacing-sm)] shadow-[var(--shadow-soft)] relative overflow-hidden">
+          {/* Card Accent */}
+          <div className="absolute top-0 left-0 right-0 h-[4px] bg-emerald-500/80" />
+
+          <div className="flex flex-col gap-[var(--spacing-md)] pt-[4px]">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-[var(--spacing-s)]">
+                <div className="w-[44px] h-[44px] rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                  <Wallet className="size-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-[16px] text-[var(--color-text-primary)]">
+                    Available Rewards
+                  </p>
+                  <p className="text-[12px] text-[var(--color-text-secondary)] mt-[2px]">
+                    Balance: {formatCurrency(summary.walletBalancePaise)} • Max
+                    Redeem: {formatCurrency(summary.reward.maxRedeemPaise)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {summary.walletBalancePaise === 0 ? (
+              <EmptyState
+                compact
+                icon={<Wallet className="size-6 text-muted-foreground" />}
+                title="Customer has no rewards"
+                description="They will earn rewards from this visit after payment."
+                className="rounded-xl border bg-card"
+              />
+            ) : (
+              <div className="relative">
+                <div className="absolute left-[16px] top-[26px] -translate-y-1/2 text-[var(--color-text-tertiary)] font-bold text-[24px]">
+                  ₹
+                </div>
+                <input
+                  id="reward-amount"
+                  type="number"
+                  inputMode="decimal"
+                  placeholder="0"
+                  value={rewardInput}
+                  onChange={(event) =>
+                    setRewardInput(sanitizeRupeeInput(event.target.value))
+                  }
+                  onBlur={handleBlur}
+                  onKeyDown={(e) => {
+                    if (e.key === "-" || e.key === "e" || e.key === "+") {
+                      e.preventDefault();
+                    }
+                  }}
+                  className="w-full h-[72px] pl-[48px] pr-[16px] bg-card border-2 border-border/60 focus:border-primary focus:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] rounded-[var(--radius-input)] text-[32px] font-bold text-[var(--color-text-primary)] outline-none transition-all tabular-nums shadow-[var(--shadow-soft)]"
+                />
+                <p
+                  id="reward-help"
+                  className={
+                    inputError
+                      ? "mt-[8px] text-[12px] text-destructive font-medium"
+                      : "mt-[8px] text-[12px] text-[var(--color-text-tertiary)]"
+                  }
+                >
+                  {inputError ??
+                    "Tap a percentage or enter an amount manually."}
+                </p>
+              </div>
+            )}
+
+            {summary.walletBalancePaise > 0 && (
+              <div className="flex items-center gap-2">
+                {[0.25, 0.5, 0.75, 1.0].map((ratio) => {
+                  const chipPaise = Math.floor(
+                    summary.reward.maxRedeemPaise * ratio,
+                  );
+                  const chipRupees = (chipPaise / 100).toString();
+                  const label = `${ratio * 100}%`;
+                  return (
+                    <Button
+                      key={ratio}
+                      type="button"
+                      variant="outline"
+                      className="h-[40px] flex-1 rounded-[12px] text-[13px] font-semibold border-border/60 hover:bg-muted"
+                      onClick={() => setRewardInput(chipRupees)}
+                    >
+                      {label}
+                    </Button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Reward Earned Preview */}
+          <div className="mt-[var(--spacing-md)] pt-[var(--spacing-sm)] border-t border-border/20 flex justify-between items-center">
+            <div>
+              <p className="text-[13px] text-[var(--color-text-secondary)] font-medium">
+                Earn Today
+              </p>
+              <p className="text-[11px] text-[var(--color-text-tertiary)]">
+                {summary.reward.rewardPercentage}% of Final Pay
+              </p>
+            </div>
+            <p className="font-bold text-[16px] text-success bg-[var(--color-success-light)] px-[12px] py-[6px] rounded-[12px] flex items-center gap-[4px]">
+              +{formatCurrency(summary.rewardEarnedPaise)}
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </p>
+          </div>
+        </div>
+
         {/* Bill Summary Card */}
-        <div className="bg-card rounded-2xl p-6 mb-3 flex flex-col items-center justify-center shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-border/40">
-          <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-semibold mb-1">
+        <div className="bg-card rounded-[var(--radius-card)] p-[var(--spacing-md)] mb-[var(--spacing-sm)] flex flex-col items-center justify-center shadow-[var(--shadow-soft)] border border-border/40">
+          <p className="text-[11px] text-[var(--color-text-secondary)] uppercase tracking-widest font-semibold mb-1">
             FINAL PAY
           </p>
           <h2 className="text-[40px] font-bold text-primary leading-none tracking-tight flex items-start">
@@ -368,9 +532,9 @@ export function CheckoutSummaryStep() {
             {(summary.finalPayablePaise / 100).toFixed(0)}
           </h2>
           {summary.rewardUsedPaise > 0 && (
-            <p className="text-[13px] text-muted-foreground font-medium mt-3">
+            <p className="text-[13px] text-[var(--color-text-tertiary)] font-medium mt-3">
               Original Bill {formatCurrency(summary.subtotalPaise)} •{" "}
-              <span className="text-emerald-600 dark:text-emerald-400">
+              <span className="text-success font-semibold">
                 Saved {formatCurrency(summary.rewardUsedPaise)}
               </span>
             </p>
@@ -382,13 +546,13 @@ export function CheckoutSummaryStep() {
             <p className="text-[12px] text-muted-foreground font-semibold uppercase tracking-wider mb-3 pl-1">
               Payment Method
             </p>
-            <div className="flex bg-muted/40 rounded-[20px] p-1 gap-1 border border-border/40">
+            <div className="flex bg-surface rounded-[24px] p-[4px] gap-[4px] border border-border/20">
               <button
                 type="button"
                 onClick={() => setPaymentMethod("cash")}
                 className={`
-                  flex-1 flex items-center justify-center gap-2 min-h-[56px] rounded-2xl transition-all cursor-pointer
-                  ${effectivePaymentMethod === "cash" ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgba(var(--primary),0.25)] font-semibold" : "text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5"}
+                  flex-1 flex items-center justify-center gap-2 h-[56px] rounded-[var(--radius-button)] transition-all cursor-pointer
+                  ${effectivePaymentMethod === "cash" ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgba(var(--primary),0.25)] font-semibold" : "text-[var(--color-text-secondary)] hover:bg-black/5 dark:hover:bg-white/5"}
                 `}
               >
                 <svg
@@ -409,8 +573,8 @@ export function CheckoutSummaryStep() {
                 type="button"
                 onClick={() => setPaymentMethod("online")}
                 className={`
-                  flex-1 flex items-center justify-center gap-2 min-h-[56px] rounded-2xl transition-all cursor-pointer
-                  ${effectivePaymentMethod === "online" ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgba(var(--primary),0.25)] font-semibold" : "text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5"}
+                  flex-1 flex items-center justify-center gap-2 h-[56px] rounded-[var(--radius-button)] transition-all cursor-pointer
+                  ${effectivePaymentMethod === "online" ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgba(var(--primary),0.25)] font-semibold" : "text-[var(--color-text-secondary)] hover:bg-black/5 dark:hover:bg-white/5"}
                 `}
               >
                 <svg
@@ -451,8 +615,18 @@ export function CheckoutSummaryStep() {
         ) : null}
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(16px+env(safe-area-inset-bottom,0px))] bg-card/90 backdrop-blur-xl border-t border-border/20 shadow-[0_-8px_32px_rgba(0,0,0,0.08)] z-10">
-        <div className="mx-auto max-w-lg">
+      <div
+        className="fixed bottom-0 left-0 right-0 p-[var(--spacing-md)] pb-[calc(var(--spacing-md)+env(safe-area-inset-bottom,0px))] bg-background/90 backdrop-blur-xl border-t border-border/20 shadow-[var(--shadow-soft)] z-[60]"
+        style={{ width: "100%", left: 0, right: 0, bottom: 0 }}
+      >
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            maxWidth: "512px",
+            margin: "0 auto",
+          }}
+        >
           <button
             type="button"
             disabled={
@@ -465,7 +639,8 @@ export function CheckoutSummaryStep() {
                 ? () => handleSendOtp()
                 : handleCompleteVisit
             }
-            className="w-full min-h-[56px] bg-primary text-primary-foreground font-semibold text-[16px] rounded-xl disabled:opacity-50 active:scale-[0.97] transition-all cursor-pointer shadow-[0_4px_16px_rgba(var(--primary),0.3)] flex items-center justify-center gap-2"
+            className="h-[56px] bg-primary text-primary-foreground font-semibold text-[16px] rounded-[var(--radius-button)] disabled:opacity-50 active:scale-[0.97] transition-all cursor-pointer shadow-[0_4px_16px_rgba(var(--primary),0.3)] flex items-center justify-center gap-2"
+            style={{ width: "100%" }}
           >
             {isCompleting || isOtpPending ? (
               <>
@@ -506,16 +681,16 @@ export function CheckoutSummaryStep() {
       {summary.requiresOtp && otpState === "sent" && !otpVerifiedToken && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300"
+            className="absolute inset-0 bg-background/60 backdrop-blur-md animate-in fade-in duration-300"
             onClick={() => setOtpState("idle")}
           />
-          <div className="relative bg-card w-full rounded-t-3xl p-6 pb-[calc(32px+env(safe-area-inset-bottom,0px))] animate-in slide-in-from-bottom-full duration-300">
-            <div className="w-10 h-1 bg-border rounded-full mx-auto mb-6" />
+          <div className="relative bg-card w-full rounded-t-[32px] p-[var(--spacing-md)] pt-6 pb-[calc(32px+env(safe-area-inset-bottom,0px))] animate-in slide-in-from-bottom-full duration-300 shadow-[var(--shadow-hero)] border-t border-border/40">
+            <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-[var(--spacing-md)]" />
 
-            <h3 className="text-[20px] font-bold text-foreground mb-1">
+            <h3 className="text-[22px] font-bold text-[var(--color-text-primary)] mb-1 text-center">
               Verify Reward
             </h3>
-            <p className="text-[14px] text-muted-foreground mb-8">
+            <p className="text-[14px] text-[var(--color-text-secondary)] mb-8 text-center">
               OTP sent to {customer.phone.replace(/.(?=.{4})/g, "x")}
             </p>
 

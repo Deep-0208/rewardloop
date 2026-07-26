@@ -64,7 +64,7 @@ export default async function MorePage() {
           <SettingsMenuItem
             href="/more/catalog"
             icon={<Scissors className="size-5 text-primary" />}
-            label="Service Catalog"
+            label="Catalog"
             description={`${catalogItemCount} item${catalogItemCount !== 1 ? "s" : ""}`}
           />
           <SettingsMenuItem

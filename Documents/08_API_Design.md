@@ -451,6 +451,7 @@ interface GetCatalogResult {
 
 ```typescript
 interface CreateCatalogItemInput {
+  type: "service" | "product";
   name: string; // 1–100 chars
   price: number; // Paise, minimum 100
 }
@@ -460,6 +461,7 @@ interface CreateCatalogItemInput {
 
 ```typescript
 const CreateCatalogItemSchema = z.object({
+  type: z.enum(["service", "product"]),
   name: z
     .string()
     .min(1)
@@ -486,6 +488,7 @@ interface CreateCatalogItemResult {
 ```typescript
 interface UpdateCatalogItemInput {
   id: string; // UUID
+  type?: "service" | "product";
   name?: string;
   price?: number; // Paise
 }

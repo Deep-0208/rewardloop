@@ -19,7 +19,7 @@ import { Loader2 } from "@/components/icons";
 import type { ReactNode } from "react";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-xl border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-all duration-150 outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 active:scale-[0.97] motion-reduce:active:scale-100",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-[var(--radius-button)] border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-all duration-[var(--transition-normal)] outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 active:scale-[0.97] motion-reduce:active:scale-100",
   {
     variants: {
       variant: {
@@ -44,9 +44,9 @@ const buttonVariants = cva(
         lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
         /** 48px touch target for mobile CTAs */
         touch:
-          "h-12 gap-2 rounded-2xl px-5 text-base [&_svg:not([class*='size-'])]:size-5",
+          "h-12 gap-2 rounded-[var(--radius-button)] px-5 text-base [&_svg:not([class*='size-'])]:size-5",
         /** Full-width 48px for sticky bottom CTAs */
-        full: "h-12 w-full gap-2 rounded-2xl px-5 text-base [&_svg:not([class*='size-'])]:size-5",
+        full: "h-12 w-full gap-2 rounded-[var(--radius-button)] px-5 text-base [&_svg:not([class*='size-'])]:size-5",
         icon: "size-8",
         "icon-xs":
           "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",

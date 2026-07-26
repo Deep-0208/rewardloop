@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 "use server";
 
 import { z } from "zod";
@@ -16,6 +17,24 @@ export const createBusinessSchema = z.object({
     "car_wash",
     "other",
   ]),
+  reward_percentage: z.number().int().min(1).max(50),
+  max_redeem_percentage: z.number().int().min(1).max(100),
+  services: z
+    .array(
+      z.object({
+        name: z.string(),
+        price: z.number().int().min(0),
+      }),
+    )
+    .optional(),
+  products: z
+    .array(
+      z.object({
+        name: z.string(),
+        price: z.number().int().min(0),
+      }),
+    )
+    .optional(),
 });
 
 export type CreateBusinessInput = z.infer<typeof createBusinessSchema>;
@@ -51,7 +70,14 @@ export async function createBusiness(
       };
     }
 
-    const { name, business_type } = validatedFields.data;
+    const {
+      name,
+      business_type,
+      reward_percentage,
+      max_redeem_percentage,
+      services = [],
+      products = [],
+    } = validatedFields.data;
 
     // 3. Use Admin client to bypass RLS for initial creation
     const adminSupabase = createAdminClient();
@@ -97,14 +123,62 @@ export async function createBusiness(
       .from("reward_rules")
       .insert({
         business_id: newBusiness.id,
-        reward_percentage: 10,
-        max_redeem_percentage: 100,
+        reward_percentage: reward_percentage,
+        max_redeem_percentage: max_redeem_percentage,
         min_redeem_amount: 0,
       });
 
     if (rulesError) {
       console.error("Failed to setup reward rules:", rulesError);
       // Non-fatal, they can set it up later
+    }
+
+    // 7. Create default catalog
+    const { data: newCatalog, error: catalogError } = await adminSupabase
+      .from("catalogs")
+      .insert({
+        business_id: newBusiness.id,
+        name: "Default Catalog",
+      })
+      .select("id")
+      .single();
+
+    if (catalogError || !newCatalog) {
+      console.error("Failed to create catalog:", catalogError);
+    } else {
+      // 8. Insert services and products
+      const itemsToInsert = [
+        ...services.map((s, i) => ({
+          catalog_id: newCatalog.id,
+          business_id: newBusiness.id,
+          name: s.name,
+          price: s.price,
+          type: "service",
+          status: "active",
+          sort_order: i,
+          created_by: user.id,
+        })),
+        ...products.map((p, i) => ({
+          catalog_id: newCatalog.id,
+          business_id: newBusiness.id,
+          name: p.name,
+          price: p.price,
+          type: "product",
+          status: "active",
+          sort_order: services.length + i,
+          created_by: user.id,
+        })),
+      ];
+
+      if (itemsToInsert.length > 0) {
+        const { error: itemsError } = await adminSupabase
+          .from("catalog_items")
+          .insert(itemsToInsert);
+
+        if (itemsError) {
+          console.error("Failed to setup catalog items:", itemsError);
+        }
+      }
     }
 
     revalidatePath("/", "layout");

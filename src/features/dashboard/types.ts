@@ -27,6 +27,8 @@ export interface RecentTransaction {
   readonly customerName: string | null;
   readonly customerPhone: string;
   readonly subtotalPaise: Paise;
+  readonly serviceSubtotalPaise: Paise;
+  readonly productSubtotalPaise: Paise;
   readonly rewardUsedPaise: Paise;
   readonly rewardEarnedPaise: Paise;
   readonly finalPaidPaise: Paise;

@@ -12,7 +12,6 @@
 
 import { memo } from "react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/utils";
 import type { CatalogItemType } from "../types";
 import type { Paise } from "@/types";
@@ -181,11 +180,11 @@ export const CatalogItemCard = memo(function CatalogItemCard({
       }}
       aria-label={`Add ${name} to bill. Price: ${formatCurrency(price)}. Current quantity: ${quantityInCart}.`}
       className={cn(
-        "relative flex flex-col justify-between p-4 rounded-3xl transition-all duration-200 select-none min-h-[140px]",
+        "relative flex flex-col justify-between p-[var(--spacing-sm)] rounded-[var(--radius-card)] transition-all duration-200 select-none min-h-[140px]",
         "cursor-pointer active:scale-[0.98]",
         isInCart
-          ? "border-2 border-primary bg-primary/[0.04] shadow-[0_4px_20px_rgba(79,70,229,0.15)] ring-1 ring-primary/20"
-          : "border border-border/60 bg-card shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.06)] hover:border-primary/30",
+          ? "border-2 border-primary bg-[var(--color-primary-light)] shadow-[0_4px_20px_rgba(79,70,229,0.15)] ring-1 ring-primary/20"
+          : "border border-border/60 bg-card shadow-[var(--shadow-soft)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.06)] hover:border-primary/30",
         className,
       )}
     >
@@ -193,10 +192,10 @@ export const CatalogItemCard = memo(function CatalogItemCard({
       <div className="flex items-center justify-between w-full mb-3">
         <div
           className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors duration-200",
+            "flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full transition-colors duration-200",
             isInCart
               ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(79,70,229,0.25)]"
-              : "bg-primary/10 text-primary",
+              : "bg-[var(--color-primary-light)] text-primary",
           )}
         >
           {renderIcon()}
@@ -238,11 +237,11 @@ export const CatalogItemCard = memo(function CatalogItemCard({
       </div>
 
       {/* Bottom Content: Name & Price */}
-      <div className="flex flex-col gap-0.5">
-        <span className="text-[15px] font-semibold text-foreground tracking-tight leading-snug line-clamp-1">
+      <div className="flex flex-col gap-0.5 mt-[var(--spacing-s)]">
+        <span className="text-[15px] font-semibold text-[var(--color-text-primary)] tracking-tight leading-snug line-clamp-1">
           {name}
         </span>
-        <span className="text-xs font-bold text-muted-foreground tabular-nums">
+        <span className="text-[12px] font-bold text-[var(--color-text-secondary)] tabular-nums">
           {formatCurrency(price)}
         </span>
       </div>

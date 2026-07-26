@@ -42,7 +42,7 @@ export async function getTransactionHistory(
       payment_method,
       created_at,
       customers!inner ( name, phone ),
-      transaction_items ( id )
+      transaction_items ( id, quantity, unit_price, catalog_item_type )
     `,
     )
     .order("created_at", { ascending: false })
@@ -57,19 +57,40 @@ export async function getTransactionHistory(
   }
 
   return (data ?? []).map((row) => {
-    const customer = Array.isArray(row.customers) ? row.customers[0] : row.customers;
-    const items = row.transaction_items;
+    const customer = Array.isArray(row.customers)
+      ? row.customers[0]
+      : row.customers;
+    const items =
+      (row.transaction_items as Array<{
+        id: string;
+        quantity: number;
+        unit_price: number;
+        catalog_item_type: "service" | "product";
+      }>) || [];
+
+    let serviceSubtotalPaise = 0;
+    let productSubtotalPaise = 0;
+    for (const item of items) {
+      if (item.catalog_item_type === "product") {
+        productSubtotalPaise += item.quantity * item.unit_price;
+      } else {
+        serviceSubtotalPaise += item.quantity * item.unit_price;
+      }
+    }
+
     return {
       id: row.id,
       customerName: customer?.name ?? null,
       customerPhone: customer?.phone ?? "",
       subtotalPaise: row.subtotal,
+      serviceSubtotalPaise,
+      productSubtotalPaise,
       rewardUsedPaise: row.reward_used,
       rewardEarnedPaise: row.reward_earned,
       finalPaidPaise: row.final_paid,
       paymentMethod: row.payment_method as "cash" | "online" | "none",
       createdAt: row.created_at,
-      itemCount: Array.isArray(items) ? items.length : 0,
+      itemCount: items.length,
     };
   });
 }

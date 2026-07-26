@@ -24,10 +24,12 @@ import { handleActionError } from "@/lib/errors";
  * - Auth handled by createClient + RLS.
  * - Returns ActionResult<CatalogItem[]>.
  */
-export async function getCatalogItems(): Promise<GetCatalogItemsResponse> {
+export async function getCatalogItems(
+  type?: "service" | "product",
+): Promise<GetCatalogItemsResponse> {
   try {
     const supabase = await createClient();
-    const items = await getActiveCatalog(supabase);
+    const items = await getActiveCatalog(supabase, type);
     return actionSuccess(items);
   } catch (error) {
     return handleActionError(error);

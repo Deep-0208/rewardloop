@@ -78,7 +78,8 @@ async function fetchRecentTransactions(
       final_paid,
       payment_method,
       created_at,
-      customers!inner ( name, phone )
+      customers!inner ( name, phone ),
+      transaction_items ( quantity, unit_price, catalog_items ( type ) )
     `,
     )
     .order("created_at", { ascending: false })
@@ -97,11 +98,30 @@ async function fetchRecentTransactions(
       name: string | null;
       phone: string;
     } | null;
+
+    const items =
+      (row.transaction_items as Array<{
+        quantity: number;
+        unit_price: number;
+        catalog_items: { type: "service" | "product" } | null;
+      }>) || [];
+    let serviceSubtotalPaise = 0;
+    let productSubtotalPaise = 0;
+    for (const item of items) {
+      if (item.catalog_items?.type === "product") {
+        productSubtotalPaise += item.quantity * item.unit_price;
+      } else {
+        serviceSubtotalPaise += item.quantity * item.unit_price;
+      }
+    }
+
     return {
       id: row.id as string,
       customerName: customer?.name ?? null,
       customerPhone: customer?.phone ?? "",
       subtotalPaise: row.subtotal as number,
+      serviceSubtotalPaise,
+      productSubtotalPaise,
       rewardUsedPaise: row.reward_used as number,
       rewardEarnedPaise: row.reward_earned as number,
       finalPaidPaise: row.final_paid as number,

@@ -31,12 +31,15 @@ export function AppNavigation() {
 
   const step = useBillingStore((s) => s.step);
   const customer = useBillingStore((s) => s.customer);
-  const items = useBillingStore((s) => s.items);
+  const selectedServices = useBillingStore((s) => s.selectedServices);
+  const selectedProducts = useBillingStore((s) => s.selectedProducts);
   const resetStore = useBillingStore((s) => s.reset);
 
   const [pendingHref, setPendingHref] = useState<string | null>(null);
 
-  const hasUnsavedVisit = Boolean(customer || items.length > 0);
+  const hasUnsavedVisit = Boolean(
+    customer || selectedServices.length > 0 || selectedProducts.length > 0,
+  );
   const isInsideActiveWizard =
     pathname.startsWith("/visit") && step !== "customer";
 

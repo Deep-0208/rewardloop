@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/app-shell";
-import { AppNavigation } from "@/components/navigation/app-navigation";
+import { BottomNav } from "@/components/layout/bottom-nav";
 
 /**
  * App layout — wraps all main application pages.
@@ -13,7 +13,7 @@ export default function AppLayout({
   return (
     <AppShell>
       {children}
-      <AppNavigation />
+      <BottomNav />
     </AppShell>
   );
 }

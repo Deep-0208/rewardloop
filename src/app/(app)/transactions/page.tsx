@@ -69,6 +69,16 @@ export default async function TransactionsPage() {
                   ? formatCurrency(tx.rewardUsedPaise)
                   : undefined
               }
+              serviceSubtotal={
+                tx.serviceSubtotalPaise > 0
+                  ? formatCurrency(tx.serviceSubtotalPaise)
+                  : undefined
+              }
+              productSubtotal={
+                tx.productSubtotalPaise > 0
+                  ? formatCurrency(tx.productSubtotalPaise)
+                  : undefined
+              }
               paymentMethod={tx.paymentMethod}
               timestamp={formatDate(tx.createdAt, "datetime")}
             />

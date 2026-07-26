@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Providers } from "./providers";
+import { Agentation } from "agentation";
 import "./globals.css";
 
 const inter = Inter({
@@ -52,6 +53,7 @@ export default function RootLayout({
     >
       <body className="min-h-dvh flex flex-col font-sans antialiased">
         <Providers>{children}</Providers>
+        {process.env.NODE_ENV === "development" && <Agentation />}
         <Script id="sw-registration" strategy="afterInteractive">
           {`
             if ('serviceWorker' in navigator) {

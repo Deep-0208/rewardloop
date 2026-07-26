@@ -23,7 +23,7 @@ import type { VisitPaymentMethod } from "@/features/checkout/types";
 /* ─── Types ─────────────────────────────────────────────────────────────────── */
 
 /** Wizard step progression */
-export type BillingStep = "customer" | "catalog" | "reward" | "summary";
+export type BillingStep = "customer" | "catalog" | "summary";
 
 /** Selected customer for the current visit */
 export interface SelectedCustomer {
@@ -36,6 +36,7 @@ export interface SelectedCustomer {
 export interface CartItem {
   readonly catalogItemId: UUID;
   readonly name: string;
+  readonly type: "service" | "product";
   readonly unitPrice: Paise;
   readonly quantity: number;
 }
@@ -49,8 +50,11 @@ interface BillingState {
   /** Selected customer (set in step 1) */
   customer: SelectedCustomer | null;
 
-  /** Cart items (built in step 2) */
-  items: CartItem[];
+  /** Selected services (built in step 2) */
+  selectedServices: CartItem[];
+
+  /** Selected products (built in step 2) */
+  selectedProducts: CartItem[];
 
   /** Reward amount selected for the current bill, in paise. */
   rewardAppliedPaise: Paise;
@@ -75,21 +79,13 @@ interface BillingActions {
   /** Set the selected customer */
   setCustomer: (customer: SelectedCustomer) => void;
 
-  /**
-   * Add an item to the cart.
-   * If the item already exists, increment its quantity by 1.
-   * Otherwise, add it with quantity 1.
-   */
-  addItem: (item: Omit<CartItem, "quantity">) => void;
-
-  /**
-   * Update the quantity of a cart item by a delta (+1 or -1).
-   * If the resulting quantity is less than 1, the item is removed.
-   */
-  updateQuantity: (catalogItemId: UUID, delta: number) => void;
-
-  /** Remove an item from the cart entirely */
-  removeItem: (catalogItemId: UUID) => void;
+  addService: (item: Omit<CartItem, "quantity" | "type">) => void;
+  addProduct: (item: Omit<CartItem, "quantity" | "type">) => void;
+  updateServiceQuantity: (catalogItemId: UUID, delta: number) => void;
+  updateProductQuantity: (catalogItemId: UUID, delta: number) => void;
+  removeService: (catalogItemId: UUID) => void;
+  removeProduct: (catalogItemId: UUID) => void;
+  getCartItems: () => CartItem[];
 
   /** Set the validated reward amount for the current bill. */
   setRewardAppliedPaise: (rewardAppliedPaise: Paise) => void;
@@ -110,8 +106,11 @@ interface BillingActions {
   /** Calculate the subtotal in paise */
   getSubtotal: () => Paise;
 
-  /** Get total number of unique items in cart */
   getTotalItems: () => number;
+  getTotalServices: () => number;
+  getTotalProducts: () => number;
+  getServiceSubtotal: () => Paise;
+  getProductSubtotal: () => Paise;
 
   /** Get total quantity across all items */
   getTotalQuantity: () => number;
@@ -125,7 +124,8 @@ interface BillingActions {
 const initialState: BillingState = {
   step: "customer",
   customer: null,
-  items: [],
+  selectedServices: [],
+  selectedProducts: [],
   rewardAppliedPaise: 0,
   rewardSummary: null,
   checkoutSummary: null,
@@ -151,15 +151,14 @@ export const useBillingStore = create<BillingState & BillingActions>()(
           otpVerifiedToken: null,
         }),
 
-      addItem: (item) =>
+      addService: (item) =>
         set((state) => {
-          const existing = state.items.find(
+          const existing = state.selectedServices.find(
             (i) => i.catalogItemId === item.catalogItemId,
           );
-
           if (existing) {
             return {
-              items: state.items.map((i) =>
+              selectedServices: state.selectedServices.map((i) =>
                 i.catalogItemId === item.catalogItemId
                   ? { ...i, quantity: i.quantity + 1 }
                   : i,
@@ -170,9 +169,11 @@ export const useBillingStore = create<BillingState & BillingActions>()(
               otpVerifiedToken: null,
             };
           }
-
           return {
-            items: [...state.items, { ...item, quantity: 1 }],
+            selectedServices: [
+              ...state.selectedServices,
+              { ...item, type: "service", quantity: 1 },
+            ],
             rewardAppliedPaise: 0,
             rewardSummary: null,
             checkoutSummary: null,
@@ -180,18 +181,47 @@ export const useBillingStore = create<BillingState & BillingActions>()(
           };
         }),
 
-      updateQuantity: (catalogItemId, delta) =>
+      addProduct: (item) =>
         set((state) => {
-          const updated = state.items
+          const existing = state.selectedProducts.find(
+            (i) => i.catalogItemId === item.catalogItemId,
+          );
+          if (existing) {
+            return {
+              selectedProducts: state.selectedProducts.map((i) =>
+                i.catalogItemId === item.catalogItemId
+                  ? { ...i, quantity: i.quantity + 1 }
+                  : i,
+              ),
+              rewardAppliedPaise: 0,
+              rewardSummary: null,
+              checkoutSummary: null,
+              otpVerifiedToken: null,
+            };
+          }
+          return {
+            selectedProducts: [
+              ...state.selectedProducts,
+              { ...item, type: "product", quantity: 1 },
+            ],
+            rewardAppliedPaise: 0,
+            rewardSummary: null,
+            checkoutSummary: null,
+            otpVerifiedToken: null,
+          };
+        }),
+
+      updateServiceQuantity: (catalogItemId, delta) =>
+        set((state) => {
+          const updated = state.selectedServices
             .map((i) =>
               i.catalogItemId === catalogItemId
                 ? { ...i, quantity: i.quantity + delta }
                 : i,
             )
             .filter((i) => i.quantity >= 1);
-
           return {
-            items: updated,
+            selectedServices: updated,
             rewardAppliedPaise: 0,
             rewardSummary: null,
             checkoutSummary: null,
@@ -199,14 +229,50 @@ export const useBillingStore = create<BillingState & BillingActions>()(
           };
         }),
 
-      removeItem: (catalogItemId) =>
+      updateProductQuantity: (catalogItemId, delta) =>
+        set((state) => {
+          const updated = state.selectedProducts
+            .map((i) =>
+              i.catalogItemId === catalogItemId
+                ? { ...i, quantity: i.quantity + delta }
+                : i,
+            )
+            .filter((i) => i.quantity >= 1);
+          return {
+            selectedProducts: updated,
+            rewardAppliedPaise: 0,
+            rewardSummary: null,
+            checkoutSummary: null,
+            otpVerifiedToken: null,
+          };
+        }),
+
+      removeService: (catalogItemId) =>
         set((state) => ({
-          items: state.items.filter((i) => i.catalogItemId !== catalogItemId),
+          selectedServices: state.selectedServices.filter(
+            (i) => i.catalogItemId !== catalogItemId,
+          ),
           rewardAppliedPaise: 0,
           rewardSummary: null,
           checkoutSummary: null,
           otpVerifiedToken: null,
         })),
+
+      removeProduct: (catalogItemId) =>
+        set((state) => ({
+          selectedProducts: state.selectedProducts.filter(
+            (i) => i.catalogItemId !== catalogItemId,
+          ),
+          rewardAppliedPaise: 0,
+          rewardSummary: null,
+          checkoutSummary: null,
+          otpVerifiedToken: null,
+        })),
+
+      getCartItems: () => {
+        const { selectedServices, selectedProducts } = get();
+        return [...selectedServices, ...selectedProducts];
+      },
 
       setRewardAppliedPaise: (rewardAppliedPaise) =>
         set({
@@ -232,19 +298,35 @@ export const useBillingStore = create<BillingState & BillingActions>()(
       setOtpVerifiedToken: (otpVerifiedToken) => set({ otpVerifiedToken }),
 
       getSubtotal: () => {
-        const { items } = get();
+        return get().getServiceSubtotal() + get().getProductSubtotal();
+      },
+
+      getServiceSubtotal: () => {
         return calculateSubtotal(
-          items.map((item) => ({
+          get().selectedServices.map((item) => ({
             unitPricePaise: item.unitPrice,
             quantity: item.quantity,
           })),
         );
       },
 
-      getTotalItems: () => get().items.length,
+      getProductSubtotal: () => {
+        return calculateSubtotal(
+          get().selectedProducts.map((item) => ({
+            unitPricePaise: item.unitPrice,
+            quantity: item.quantity,
+          })),
+        );
+      },
+
+      getTotalItems: () => get().getCartItems().length,
+      getTotalServices: () => get().selectedServices.length,
+      getTotalProducts: () => get().selectedProducts.length,
 
       getTotalQuantity: () =>
-        get().items.reduce((total, item) => total + item.quantity, 0),
+        get()
+          .getCartItems()
+          .reduce((total, item) => total + item.quantity, 0),
 
       reset: () => set(initialState),
     }),
@@ -254,7 +336,8 @@ export const useBillingStore = create<BillingState & BillingActions>()(
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         customer: state.customer,
-        items: state.items,
+        selectedServices: state.selectedServices,
+        selectedProducts: state.selectedProducts,
         step: state.step, // Persisting step helps UX if they refresh on catalog page
       }),
       merge: (persistedState: unknown, currentState) => ({

@@ -7,9 +7,9 @@
  * @module features/catalog/components/cart-summary-footer
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { cn } from "@/lib/utils";
 import { ChevronUp } from "@/components/icons";
 import { formatCurrency } from "@/utils";
 import type { Paise } from "@/types";
@@ -43,67 +43,113 @@ export function CartSummaryFooter({
 
   return (
     <div
-      className={cn(
-        "fixed inset-x-0 bottom-0 z-40",
-        "border-t border-border/20 bg-card/95 backdrop-blur-xl",
-        "shadow-[0_-8px_32px_rgba(0,0,0,0.08)]",
-        "p-4 pb-[calc(16px+env(safe-area-inset-bottom,0px))]",
-        className,
-      )}
+      className={className}
+      style={{
+        position: "fixed",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 60,
+        backgroundColor: "var(--color-card, #ffffff)",
+        borderTop: "1px solid var(--color-border, #e5e7eb)",
+        boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}
     >
-      <div className="mx-auto flex max-w-lg flex-col gap-3">
-        {/* Subtotal & Status Row */}
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={onExpandCart}
-            disabled={isEmpty}
-            className="flex items-center gap-2 text-left disabled:opacity-50 group cursor-pointer"
-            aria-label={
-              isEmpty
-                ? "Cart is empty"
-                : `View cart: ${totalItems} items, ${totalQuantity} quantity, total ${formatCurrency(subtotal)}`
-            }
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          maxWidth: "512px",
+          margin: "0 auto",
+          height: "140px",
+        }}
+      >
+        {/* Info Area (Clickable to expand cart) */}
+        <button
+          type="button"
+          onClick={onExpandCart}
+          disabled={isEmpty}
+          style={{
+            position: "absolute",
+            top: "16px",
+            left: "16px",
+            right: "100px",
+            height: "48px",
+            background: "transparent",
+            border: "none",
+            textAlign: "left",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            cursor: isEmpty ? "default" : "pointer",
+            opacity: isEmpty ? 0.5 : 1,
+          }}
+          aria-label="View cart"
+        >
+          <div
+            style={{
+              fontSize: "13px",
+              color: "var(--color-text-secondary, #6b7280)",
+              fontWeight: 500,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              width: "100%",
+            }}
           >
-            <div>
-              <p className="text-[13px] font-medium text-muted-foreground">
-                {isEmpty
-                  ? "No services selected"
-                  : `${totalItems} ${totalItems === 1 ? "Service" : "Services"} Selected`}
-              </p>
-              <p className="mt-0.5 text-xl font-bold tabular-nums text-foreground">
-                Total: {formatCurrency(subtotal)}
-              </p>
-            </div>
+            {isEmpty
+              ? "No services selected"
+              : `${totalItems} ${totalItems === 1 ? "Service" : "Services"} Selected`}
             {!isEmpty && (
-              <ChevronUp className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5" />
+              <ChevronUp
+                className="size-4 inline-block ml-1"
+                style={{ verticalAlign: "text-bottom" }}
+              />
             )}
-          </button>
+          </div>
+          <div
+            style={{
+              fontSize: "20px",
+              fontWeight: "bold",
+              color: "var(--color-text-primary, #111827)",
+              marginTop: "2px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Total: {formatCurrency(subtotal)}
+          </div>
+        </button>
 
-          {!isEmpty && (
-            <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-bold text-emerald-600 uppercase tracking-wider dark:text-emerald-400">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-              </svg>
-              Ready
-            </div>
-          )}
-        </div>
-
-        {/* Continue Action Button */}
+        {/* Continue Button */}
         <button
           type="button"
           disabled={isEmpty}
           onClick={onContinue}
-          className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-primary text-base font-semibold text-primary-foreground shadow-[0_4px_16px_rgba(79,70,229,0.3)] transition-all cursor-pointer active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100"
+          style={{
+            position: "absolute",
+            bottom: "16px",
+            left: "16px",
+            right: "16px",
+            height: "56px",
+            backgroundColor: "var(--color-primary, #4F46E5)",
+            color: "var(--color-primary-foreground, #ffffff)",
+            borderRadius: "16px",
+            fontWeight: "bold",
+            fontSize: "16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            border: "none",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            cursor: isEmpty ? "default" : "pointer",
+            opacity: isEmpty ? 0.5 : 1,
+            width: "calc(100% - 32px)",
+          }}
           aria-label="Continue to Reward Calculation"
         >
-          <span>Continue</span>
+          Continue
           <svg
             width="18"
             height="18"
@@ -114,8 +160,8 @@ export function CartSummaryFooter({
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
           </svg>
         </button>
       </div>

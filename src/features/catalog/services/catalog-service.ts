@@ -31,11 +31,18 @@ const log = createLogger("catalog");
  */
 export async function getActiveCatalog(
   supabase: SupabaseClient,
+  type?: "service" | "product",
 ): Promise<CatalogItem[]> {
-  const { data, error } = await supabase
+  let query = supabase
     .from("catalog_items")
     .select("id, name, price, type, sort_order")
-    .eq("status", "active")
+    .eq("status", "active");
+
+  if (type) {
+    query = query.eq("type", type);
+  }
+
+  const { data, error } = await query
     .order("sort_order", { ascending: true })
     .order("name", { ascending: true });
 
