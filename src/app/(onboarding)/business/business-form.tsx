@@ -34,11 +34,11 @@ import {
   Trash2,
 } from "lucide-react";
 
+import { createBusiness } from "@/features/onboarding/actions/create-business";
 import {
-  createBusiness,
   createBusinessSchema,
   type CreateBusinessInput,
-} from "@/features/onboarding/actions/create-business";
+} from "@/features/onboarding/schemas";
 
 const BUSINESS_TYPES = [
   { label: "Salon", value: "salon" },
