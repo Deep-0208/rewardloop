@@ -50,15 +50,15 @@ export function isOnboardingRoute(pathname: string): boolean {
  * 2. Unauthenticated user accessing app/onboarding routes -> redirect to /login.
  * 3. Authenticated user accessing auth routes (/login, /verify) -> redirect to /dashboard.
  */
-export default async function proxy(request: NextRequest) {
-  const { response, user } = await updateSession(request);
+export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-
-  const skipAuth = process.env.SKIP_AUTH_MIDDLEWARE === "true";
-
+  
+  // Skip strict DB validation for public/auth routes
+  const requireStrictValidation = !isPublicRoute(pathname) && !isAuthRoute(pathname);
+  
+  const { response, user } = await updateSession(request, requireStrictValidation);
   // Unauthenticated -> redirect from protected routes to /login
   if (
-    !skipAuth &&
     !user &&
     (isAppRoute(pathname) || isOnboardingRoute(pathname))
   ) {

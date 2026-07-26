@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postbuild": "node scripts/inject-sw-version.js"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -21,6 +22,7 @@
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "idb": "^8.0.3",
     "input-otp": "^1.4.2",
     "lucide-react": "^1.25.0",
     "motion": "^12.42.2",
@@ -48,6 +50,7 @@
     "shadcn": "^4.14.1",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^3.0.0"
   }
 }

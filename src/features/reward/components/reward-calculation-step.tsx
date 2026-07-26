@@ -337,6 +337,9 @@ export function RewardCalculationStep() {
                 />
                 <Input
                   id="reward-amount"
+                  type="number"
+                  min="0"
+                  step="0.01"
                   value={rewardInput}
                   onChange={(event) =>
                     setRewardInput(sanitizeRupeeInput(event.target.value))
@@ -348,6 +351,11 @@ export function RewardCalculationStep() {
                   aria-invalid={inputError ? true : undefined}
                   aria-describedby="reward-help"
                   className="h-14 rounded-[var(--radius-input)] pl-11 text-lg font-semibold tabular-nums"
+                  onKeyDown={(e) => {
+                    if (e.key === "-" || e.key === "e" || e.key === "+") {
+                      e.preventDefault();
+                    }
+                  }}
                 />
               </div>
               <div className="mt-3 flex items-center gap-2">

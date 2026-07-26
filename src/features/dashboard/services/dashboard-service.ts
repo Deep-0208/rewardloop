@@ -18,12 +18,14 @@ import type { DashboardData, DashboardKpis, RecentTransaction } from "../types";
 const log = createLogger("dashboard");
 
 /**
- * Get the start of today in UTC ISO string.
+ * Get the start of today in IST (UTC+5:30), returned as a UTC ISO string.
  */
 function todayStartUtc(): string {
   const now = new Date();
-  now.setUTCHours(0, 0, 0, 0);
-  return now.toISOString();
+  const istOffsetMs = 5.5 * 60 * 60 * 1000;
+  const istTime = new Date(now.getTime() + istOffsetMs);
+  istTime.setUTCHours(0, 0, 0, 0);
+  return new Date(istTime.getTime() - istOffsetMs).toISOString();
 }
 
 /**
@@ -35,11 +37,13 @@ async function fetchTodayKpis(
   supabase: SupabaseClient,
 ): Promise<DashboardKpis> {
   const todayStart = todayStartUtc();
+  const startTime = Date.now();
 
-  const { data, error } = await supabase
-    .from("transactions")
-    .select("final_paid, reward_used, customer_id")
-    .gte("created_at", todayStart);
+  const { data, error } = await supabase.rpc("get_today_kpis", {
+    p_start_time: todayStart,
+  });
+
+  log.info("KPI query executed", { elapsedMs: Date.now() - startTime });
 
   if (error) {
     log.error("Failed to fetch today's KPIs", {
@@ -49,22 +53,11 @@ async function fetchTodayKpis(
     throw error;
   }
 
-  const rows = data ?? [];
-  const uniqueCustomers = new Set(
-    rows.map((r: { customer_id: string }) => r.customer_id),
-  );
-
   return {
-    todayRevenuePaise: rows.reduce(
-      (sum: number, r: { final_paid: number }) => sum + r.final_paid,
-      0,
-    ),
-    todayTransactions: rows.length,
-    todayCustomers: uniqueCustomers.size,
-    todayRewardsRedeemedPaise: rows.reduce(
-      (sum: number, r: { reward_used: number }) => sum + r.reward_used,
-      0,
-    ),
+    todayRevenuePaise: data?.todayRevenuePaise ?? 0,
+    todayTransactions: data?.todayTransactions ?? 0,
+    todayCustomers: data?.todayCustomers ?? 0,
+    todayRewardsRedeemedPaise: data?.todayRewardsRedeemedPaise ?? 0,
   };
 }
 

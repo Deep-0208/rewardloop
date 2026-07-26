@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { test, assert } from "vitest";
 import { isAppError } from "../../../lib/errors/app-error";
 import type { RewardSummary } from "../types";
 import { assertValidRewardRedemption } from "./reward-validation";
@@ -24,10 +23,15 @@ function assertRewardError(
   expectedCode:
     "VALIDATION_FAILED" | "WALLET_INSUFFICIENT" | "REWARD_LIMIT_EXCEEDED",
 ) {
-  assert.throws(
-    fn,
-    (error) => isAppError(error) && error.code === expectedCode,
-  );
+  try {
+    fn();
+    assert.fail("Expected function to throw an error");
+  } catch (error) {
+    if (!isAppError(error)) {
+      assert.fail("Error is not an AppError");
+    }
+    assert.equal(error.code, expectedCode);
+  }
 }
 
 test("allows zero or a valid whole-rupee redemption", () => {

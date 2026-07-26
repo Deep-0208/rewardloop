@@ -3,6 +3,7 @@ import "server-only";
 import { compare, hash } from "bcryptjs";
 import { randomInt } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { AppError } from "@/lib/errors";
 import { createLogger } from "@/lib/logger";
 import type { VisitContext } from "@/features/checkout/services/visit-context-service";
@@ -33,7 +34,8 @@ export async function sendRewardOtp(
   supabase: SupabaseClient,
   context: VisitContext,
 ): Promise<{ expiresAt: string }> {
-  const { data: allowed, error: rateError } = await supabase.rpc(
+  const adminSupabase = createAdminClient();
+  const { data: allowed, error: rateError } = await adminSupabase.rpc(
     "check_and_update_otp_cooldown",
     {
       p_phone: context.customer.phone,
@@ -57,7 +59,7 @@ export async function sendRewardOtp(
   const expiresAt = new Date(
     Date.now() + OTP_TTL_SECONDS * 1_000,
   ).toISOString();
-  const { data: request, error: insertError } = await supabase
+  const { data: request, error: insertError } = await adminSupabase
     .from("otp_requests")
     .insert({
       phone: context.customer.phone,
@@ -76,7 +78,7 @@ export async function sendRewardOtp(
     throw new AppError("Unable to send OTP. Please try again.", "SERVER_ERROR");
   }
 
-  const { error: deliveryError } = await supabase.functions.invoke("send-otp", {
+  const { error: deliveryError } = await adminSupabase.functions.invoke("send-otp", {
     body: {
       phone: context.customer.phone,
       otp,
@@ -85,7 +87,7 @@ export async function sendRewardOtp(
     },
   });
   if (deliveryError) {
-    await supabase
+    await adminSupabase
       .from("otp_requests")
       .update({ invalidated: true })
       .eq("id", request.id);
@@ -101,7 +103,8 @@ export async function retryRewardOtp(
   supabase: SupabaseClient,
   context: VisitContext,
 ) {
-  const { error } = await supabase
+  const adminSupabase = createAdminClient();
+  const { error } = await adminSupabase
     .from("otp_requests")
     .update({ invalidated: true })
     .eq("business_id", context.businessId)
@@ -125,7 +128,8 @@ export async function verifyRewardOtp(
   context: VisitContext,
   otp: string,
 ): Promise<{ verifiedToken: string }> {
-  const { data, error } = await supabase
+  const adminSupabase = createAdminClient();
+  const { data, error } = await adminSupabase
     .from("otp_requests")
     .select(
       "id, otp_hash, expires_at, attempts, max_attempts, verified_at, invalidated",
@@ -148,7 +152,7 @@ export async function verifyRewardOtp(
   const request = data as RewardOtpRow | null;
   if (!request || isExpired(request.expires_at)) {
     if (request?.id)
-      await supabase
+      await adminSupabase
         .from("otp_requests")
         .update({ invalidated: true })
         .eq("id", request.id);
@@ -158,7 +162,7 @@ export async function verifyRewardOtp(
     );
   }
   if (request.attempts >= request.max_attempts) {
-    await supabase
+    await adminSupabase
       .from("otp_requests")
       .update({ invalidated: true })
       .eq("id", request.id);
@@ -170,7 +174,7 @@ export async function verifyRewardOtp(
 
   if (!(await compare(otp, request.otp_hash))) {
     const attempts = request.attempts + 1;
-    await supabase
+    await adminSupabase
       .from("otp_requests")
       .update({ attempts, invalidated: attempts >= request.max_attempts })
       .eq("id", request.id);
@@ -183,7 +187,7 @@ export async function verifyRewardOtp(
     throw new AppError("Invalid OTP. Please try again.", "INVALID_OTP");
   }
 
-  const { error: verifyError } = await supabase
+  const { error: verifyError } = await adminSupabase
     .from("otp_requests")
     .update({ verified_at: new Date().toISOString() })
     .eq("id", request.id)

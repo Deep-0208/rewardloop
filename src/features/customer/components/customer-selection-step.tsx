@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect, useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -82,7 +82,10 @@ export function CustomerSelectionStep() {
     [createForm],
   );
 
-  const phoneValue = searchForm.watch("phone");
+  const phoneValue = useWatch({
+    control: searchForm.control,
+    name: "phone",
+  });
   const [lastSearchedPhone, setLastSearchedPhone] = useState("");
 
   useEffect(() => {

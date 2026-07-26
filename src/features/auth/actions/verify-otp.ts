@@ -115,14 +115,13 @@ export async function verifyOTP(
         }
         newSessionVersion = newVersion;
       } else {
-        // Create new user profile in public.users attached to default business
-        const DEFAULT_BUSINESS_ID = "11111111-1111-1111-1111-111111111111";
+        // Create new user profile in public.users without a business attached
         const { data: newUser, error: createError } = await adminSupabase
           .from("users")
           .insert({
             auth_user_id: authUserId,
             phone: e164Phone,
-            business_id: DEFAULT_BUSINESS_ID,
+            business_id: null,
             role: "owner",
             status: "active",
             session_version: 1,

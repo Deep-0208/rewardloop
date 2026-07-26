@@ -765,3 +765,19 @@ Version 1.1 resolves the following contradictions identified in the documentatio
 | C-011 | Reward % range: Onboarding says 1-50, DB said 0-100                                               | **Resolved:** 1-50 range locked in Decision 05, DB constraint updated.                                                                                                                  |
 | C-012 | Products in catalog: Product Brief included products, Decision 09 implied services only           | **Resolved:** Decision 24 explicitly lists "Product catalog" as out of scope for MVP.                                                                                                   |
 | Staff | Staff in API Design, Domain Model, Architecture but not in sprint docs                            | **Resolved:** Decision 24 updated to explicitly call out Staff Management as Phase 2. API v2.0 removes staff endpoints from MVP. features/staff/ folder removed from project structure. |
+
+---
+
+# Decision 26 — Production Locked Rules
+
+**Status:** 🔒 Locked
+
+These rules are explicitly locked and cannot drift during future development:
+
+1. OTP redemption always uses the admin client.
+2. Users created before onboarding always have `business_id = null`.
+3. Dashboard KPIs are sourced only from `get_today_kpis` RPC.
+4. All monetary calculations use integer paise.
+5. PWA is the primary supported client.
+6. Service Worker cache version must change with every release.
+7. Every privileged operation must pass through authenticated business validation.

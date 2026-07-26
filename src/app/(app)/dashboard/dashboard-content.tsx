@@ -4,6 +4,7 @@ import {
   KpiGrid,
   RecentTransactionsList,
   QuickActions,
+  PendingSyncBadge,
 } from "@/features/dashboard/components";
 import { Section } from "@/components/section";
 import type {
@@ -29,6 +30,7 @@ export function DashboardContent({
   return (
     <>
       <KpiGrid kpis={kpis} />
+      <PendingSyncBadge />
 
       <Section title="Quick Actions">
         <QuickActions />

@@ -44,12 +44,24 @@ function log(
   // Suppress debug in production
   if (level === "debug" && !isDevelopment()) return;
 
+  let safeContext = context;
+  if (context) {
+    safeContext = { ...context };
+    // Redact sensitive fields
+    const sensitiveKeys = ['phone', 'otp', 'reward_balance'];
+    for (const key of Object.keys(safeContext)) {
+      if (sensitiveKeys.some(s => key.toLowerCase().includes(s))) {
+        safeContext[key] = '[REDACTED]';
+      }
+    }
+  }
+
   const entry: LogEntry = {
     level,
     message,
     timestamp: new Date().toISOString(),
     ...(namespace && { namespace }),
-    ...(context && { context }),
+    ...(safeContext && { context: safeContext }),
   };
 
   const formatted = formatEntry(entry);

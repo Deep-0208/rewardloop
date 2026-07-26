@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { test, assert } from "vitest";
 import {
   calculateBill,
   calculateNewWalletBalance,

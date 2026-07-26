@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { test, assert } from "vitest";
 import { validateVisitCompletion } from "./complete-visit-validation";
 
 test("allows cash and online payments for a positive final payable", () => {

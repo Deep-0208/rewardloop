@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { test, assert } from "vitest";
 import type { RewardSummary } from "../../reward/types";
 import { calculateCheckoutSummary } from "./checkout-summary-engine";
 

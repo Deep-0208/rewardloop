@@ -22,6 +22,7 @@ export interface SessionValidationResult {
 export async function validateRewardLoopSession(
   supabase: SupabaseClient,
   cookieValue: string | undefined,
+  requireStrictValidation: boolean = true,
 ): Promise<SessionValidationResult> {
   const {
     data: { user },
@@ -29,6 +30,10 @@ export async function validateRewardLoopSession(
 
   if (!user) {
     return { valid: false, reason: "AUTH_REQUIRED" };
+  }
+
+  if (!requireStrictValidation) {
+    return { valid: true, user };
   }
 
   // 1. Verify rl_sv cookie signature

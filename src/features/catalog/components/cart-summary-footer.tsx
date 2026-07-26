@@ -11,7 +11,6 @@
 
 import { cn } from "@/lib/utils";
 import { ChevronUp } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/utils";
 import type { Paise } from "@/types";
 

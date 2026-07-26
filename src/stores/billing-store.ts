@@ -13,6 +13,7 @@
 "use client";
 
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { calculateSubtotal } from "@/lib/billing/billing-math";
 import type { Paise, UUID } from "@/types";
 import type { RewardSummary } from "@/features/reward/types";
@@ -134,116 +135,137 @@ const initialState: BillingState = {
 
 /* ─── Store ─────────────────────────────────────────────────────────────────── */
 
-export const useBillingStore = create<BillingState & BillingActions>(
-  (set, get) => ({
-    ...initialState,
+export const useBillingStore = create<BillingState & BillingActions>()(
+  persist(
+    (set, get) => ({
+      ...initialState,
 
-    setStep: (step) => set({ step }),
+      setStep: (step) => set({ step }),
 
-    setCustomer: (customer) =>
-      set({
-        customer,
-        rewardAppliedPaise: 0,
-        rewardSummary: null,
-        checkoutSummary: null,
-        otpVerifiedToken: null,
-      }),
+      setCustomer: (customer) =>
+        set({
+          customer,
+          rewardAppliedPaise: 0,
+          rewardSummary: null,
+          checkoutSummary: null,
+          otpVerifiedToken: null,
+        }),
 
-    addItem: (item) =>
-      set((state) => {
-        const existing = state.items.find(
-          (i) => i.catalogItemId === item.catalogItemId,
-        );
+      addItem: (item) =>
+        set((state) => {
+          const existing = state.items.find(
+            (i) => i.catalogItemId === item.catalogItemId,
+          );
 
-        if (existing) {
+          if (existing) {
+            return {
+              items: state.items.map((i) =>
+                i.catalogItemId === item.catalogItemId
+                  ? { ...i, quantity: i.quantity + 1 }
+                  : i,
+              ),
+              rewardAppliedPaise: 0,
+              rewardSummary: null,
+              checkoutSummary: null,
+              otpVerifiedToken: null,
+            };
+          }
+
           return {
-            items: state.items.map((i) =>
-              i.catalogItemId === item.catalogItemId
-                ? { ...i, quantity: i.quantity + 1 }
-                : i,
-            ),
+            items: [...state.items, { ...item, quantity: 1 }],
             rewardAppliedPaise: 0,
             rewardSummary: null,
             checkoutSummary: null,
             otpVerifiedToken: null,
           };
-        }
+        }),
 
-        return {
-          items: [...state.items, { ...item, quantity: 1 }],
+      updateQuantity: (catalogItemId, delta) =>
+        set((state) => {
+          const updated = state.items
+            .map((i) =>
+              i.catalogItemId === catalogItemId
+                ? { ...i, quantity: i.quantity + delta }
+                : i,
+            )
+            .filter((i) => i.quantity >= 1);
+
+          return {
+            items: updated,
+            rewardAppliedPaise: 0,
+            rewardSummary: null,
+            checkoutSummary: null,
+            otpVerifiedToken: null,
+          };
+        }),
+
+      removeItem: (catalogItemId) =>
+        set((state) => ({
+          items: state.items.filter((i) => i.catalogItemId !== catalogItemId),
           rewardAppliedPaise: 0,
           rewardSummary: null,
           checkoutSummary: null,
           otpVerifiedToken: null,
-        };
-      }),
-
-    updateQuantity: (catalogItemId, delta) =>
-      set((state) => {
-        const updated = state.items
-          .map((i) =>
-            i.catalogItemId === catalogItemId
-              ? { ...i, quantity: i.quantity + delta }
-              : i,
-          )
-          .filter((i) => i.quantity >= 1);
-
-        return {
-          items: updated,
-          rewardAppliedPaise: 0,
-          rewardSummary: null,
-          checkoutSummary: null,
-          otpVerifiedToken: null,
-        };
-      }),
-
-    removeItem: (catalogItemId) =>
-      set((state) => ({
-        items: state.items.filter((i) => i.catalogItemId !== catalogItemId),
-        rewardAppliedPaise: 0,
-        rewardSummary: null,
-        checkoutSummary: null,
-        otpVerifiedToken: null,
-      })),
-
-    setRewardAppliedPaise: (rewardAppliedPaise) =>
-      set({
-        rewardAppliedPaise,
-        checkoutSummary: null,
-        otpVerifiedToken: null,
-      }),
-
-    setRewardSummary: (rewardSummary) => set({ rewardSummary }),
-
-    resetReward: () =>
-      set({
-        rewardAppliedPaise: 0,
-        rewardSummary: null,
-        checkoutSummary: null,
-        otpVerifiedToken: null,
-      }),
-
-    setCheckoutSummary: (checkoutSummary) => set({ checkoutSummary }),
-
-    setPaymentMethod: (paymentMethod) => set({ paymentMethod }),
-
-    setOtpVerifiedToken: (otpVerifiedToken) => set({ otpVerifiedToken }),
-
-    getSubtotal: () => {
-      const { items } = get();
-      return calculateSubtotal(
-        items.map((item) => ({
-          unitPricePaise: item.unitPrice,
-          quantity: item.quantity,
         })),
-      );
+
+      setRewardAppliedPaise: (rewardAppliedPaise) =>
+        set({
+          rewardAppliedPaise,
+          checkoutSummary: null,
+          otpVerifiedToken: null,
+        }),
+
+      setRewardSummary: (rewardSummary) => set({ rewardSummary }),
+
+      resetReward: () =>
+        set({
+          rewardAppliedPaise: 0,
+          rewardSummary: null,
+          checkoutSummary: null,
+          otpVerifiedToken: null,
+        }),
+
+      setCheckoutSummary: (checkoutSummary) => set({ checkoutSummary }),
+
+      setPaymentMethod: (paymentMethod) => set({ paymentMethod }),
+
+      setOtpVerifiedToken: (otpVerifiedToken) => set({ otpVerifiedToken }),
+
+      getSubtotal: () => {
+        const { items } = get();
+        return calculateSubtotal(
+          items.map((item) => ({
+            unitPricePaise: item.unitPrice,
+            quantity: item.quantity,
+          })),
+        );
+      },
+
+      getTotalItems: () => get().items.length,
+
+      getTotalQuantity: () =>
+        get().items.reduce((total, item) => total + item.quantity, 0),
+
+      reset: () => set(initialState),
+    }),
+    {
+      name: "billing-storage",
+      version: 1,
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({
+        customer: state.customer,
+        items: state.items,
+        step: state.step, // Persisting step helps UX if they refresh on catalog page
+      }),
+      merge: (persistedState: unknown, currentState) => ({
+        ...currentState,
+        ...(persistedState as Partial<BillingState>),
+        // Always reset volatile financial state on reload
+        rewardAppliedPaise: 0,
+        rewardSummary: null,
+        checkoutSummary: null,
+        otpVerifiedToken: null,
+      }),
     },
-
-    getTotalItems: () => get().items.length,
-
-    getTotalQuantity: () =>
-      get().items.reduce((total, item) => total + item.quantity, 0),
-
-    reset: () => set(initialState),
-  }),
+  ),
 );

@@ -67,7 +67,6 @@ export async function isOtpRateLimited(phone: string): Promise<boolean> {
   );
 
   if (error) {
-    console.error("[isOtpRateLimited] Database rate-limit RPC error:", error);
     // Do not block user login if DB rate-limiting check fails due to RPC error
     return false;
   }

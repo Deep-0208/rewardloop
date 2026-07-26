@@ -9,7 +9,7 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { validateRewardLoopSession } from "@/features/auth/utils/session-validator";
 
-export async function updateSession(request: NextRequest) {
+export async function updateSession(request: NextRequest, requireStrictValidation: boolean = true) {
   let supabaseResponse = NextResponse.next({ request });
 
   if (
@@ -50,7 +50,7 @@ export async function updateSession(request: NextRequest) {
   );
 
   const cookieValue = request.cookies.get("rl_sv")?.value;
-  const validation = await validateRewardLoopSession(supabase, cookieValue);
+  const validation = await validateRewardLoopSession(supabase, cookieValue, requireStrictValidation);
 
   if (!validation.valid) {
     // Tampered, missing cookie, revoked, or suspended -> revoke session

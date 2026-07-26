@@ -56,23 +56,20 @@ export async function getTransactionHistory(
     throw error;
   }
 
-  return (data ?? []).map((row: Record<string, unknown>) => {
-    const customer = row.customers as {
-      name: string | null;
-      phone: string;
-    } | null;
-    const items = row.transaction_items as { id: string }[] | null;
+  return (data ?? []).map((row) => {
+    const customer = Array.isArray(row.customers) ? row.customers[0] : row.customers;
+    const items = row.transaction_items;
     return {
-      id: row.id as string,
+      id: row.id,
       customerName: customer?.name ?? null,
       customerPhone: customer?.phone ?? "",
-      subtotalPaise: row.subtotal as number,
-      rewardUsedPaise: row.reward_used as number,
-      rewardEarnedPaise: row.reward_earned as number,
-      finalPaidPaise: row.final_paid as number,
+      subtotalPaise: row.subtotal,
+      rewardUsedPaise: row.reward_used,
+      rewardEarnedPaise: row.reward_earned,
+      finalPaidPaise: row.final_paid,
       paymentMethod: row.payment_method as "cash" | "online" | "none",
-      createdAt: row.created_at as string,
-      itemCount: items?.length ?? 0,
+      createdAt: row.created_at,
+      itemCount: Array.isArray(items) ? items.length : 0,
     };
   });
 }

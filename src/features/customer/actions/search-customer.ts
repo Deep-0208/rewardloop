@@ -20,15 +20,21 @@ export async function searchCustomer(
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    let businessId: string | undefined;
 
-    if (user) {
-      const { data: userData } = await supabase
-        .from("users")
-        .select("business_id")
-        .eq("auth_user_id", user.id)
-        .maybeSingle();
-      businessId = userData?.business_id as string | undefined;
+    if (!user) {
+      throw new AppError("Authentication required", "AUTH_REQUIRED");
+    }
+
+    const { data: userData } = await supabase
+      .from("users")
+      .select("business_id")
+      .eq("auth_user_id", user.id)
+      .maybeSingle();
+
+    const businessId = userData?.business_id as string | undefined;
+
+    if (!businessId) {
+      throw new AppError("Authentication required", "AUTH_REQUIRED");
     }
 
     const customer = await findCustomerByPhone(
