@@ -34,37 +34,6 @@ import {
   sanitizeRupeeInput,
 } from "../utils/reward-input";
 
-function SummaryRow({
-  label,
-  value,
-  emphasis = false,
-}: {
-  readonly label: string;
-  readonly value: string;
-  readonly emphasis?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 text-sm">
-      <span
-        className={
-          emphasis ? "font-semibold text-foreground" : "text-muted-foreground"
-        }
-      >
-        {label}
-      </span>
-      <span
-        className={
-          emphasis
-            ? "text-base font-semibold tabular-nums"
-            : "font-medium tabular-nums"
-        }
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
-
 function RewardCalculationSkeleton() {
   return (
     <div className="flex flex-1 flex-col">
@@ -279,86 +248,90 @@ export function RewardCalculationStep() {
   const walletEmpty = preview.walletBalancePaise === 0;
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col pb-[120px]">
       <PageHeader title="Rewards" subtitle="Step 3 of 4" onBack={handleBack} />
 
-      <main className="flex flex-1 flex-col gap-4 px-4 pt-2 pb-5">
-        <Card className="bg-primary text-primary-foreground ring-0">
-          <CardContent className="flex items-start justify-between gap-4 p-5">
-            <div>
-              <p className="text-sm text-primary-foreground/75">
-                Available reward
-              </p>
-              <p className="mt-1 text-3xl font-semibold tabular-nums">
-                {formatCurrency(preview.walletBalancePaise)}
-              </p>
-              <p className="mt-1 text-sm text-primary-foreground/75">
-                {customer.name || customer.phone}
-              </p>
+      <main className="flex flex-1 flex-col p-4 animate-fade-in relative">
+        {/* Rewards Card */}
+        <div className="bg-card rounded-2xl p-5 mb-3 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-border/40">
+          <div className="flex flex-col gap-5">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path
+                      d="M12 8v8M8 12h8"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      className="text-white dark:text-background"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-semibold text-[15px] text-foreground">
+                    Available Rewards
+                  </p>
+                  <p className="text-[12px] text-muted-foreground mt-0.5">
+                    Balance: {formatCurrency(preview.walletBalancePaise)} • Max
+                    Redeem: {formatCurrency(preview.maxRedeemPaise)}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary-foreground/15">
-              <Wallet className="size-6" aria-hidden="true" />
-            </div>
-          </CardContent>
-        </Card>
 
-        <Alert className="border-primary/20 bg-primary/5">
-          <Info className="size-4 text-primary" aria-hidden="true" />
-          <AlertTitle>
-            Maximum redeem: {formatCurrency(preview.maxRedeemPaise)}
-          </AlertTitle>
-          <AlertDescription>
-            Customer has {formatCurrency(preview.walletBalancePaise)} and can
-            redeem up to this amount on this bill.
-          </AlertDescription>
-        </Alert>
-
-        {walletEmpty ? (
-          <EmptyState
-            compact
-            icon={<Wallet className="size-6 text-muted-foreground" />}
-            title="Customer has no rewards"
-            description="They will earn rewards from this visit after payment."
-            className="rounded-xl border bg-card"
-          />
-        ) : (
-          <Card>
-            <CardContent className="p-5">
-              <label
-                htmlFor="reward-amount"
-                className="text-sm font-medium text-foreground"
-              >
-                Redeem reward
-              </label>
-              <div className="relative mt-2">
-                <IndianRupee
-                  className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                <Input
+            {walletEmpty ? (
+              <EmptyState
+                compact
+                icon={<Wallet className="size-6 text-muted-foreground" />}
+                title="Customer has no rewards"
+                description="They will earn rewards from this visit after payment."
+                className="rounded-xl border bg-card"
+              />
+            ) : (
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-[20px]">
+                  ₹
+                </div>
+                <input
                   id="reward-amount"
                   type="number"
-                  min="0"
-                  step="0.01"
+                  inputMode="decimal"
+                  placeholder="0"
                   value={rewardInput}
                   onChange={(event) =>
                     setRewardInput(sanitizeRupeeInput(event.target.value))
                   }
                   onBlur={handleBlur}
-                  inputMode="decimal"
-                  autoComplete="off"
-                  placeholder="0"
-                  aria-invalid={inputError ? true : undefined}
-                  aria-describedby="reward-help"
-                  className="h-14 rounded-[var(--radius-input)] pl-11 text-lg font-semibold tabular-nums"
                   onKeyDown={(e) => {
                     if (e.key === "-" || e.key === "e" || e.key === "+") {
                       e.preventDefault();
                     }
                   }}
+                  className="w-full h-[64px] pl-[40px] pr-[16px] bg-muted/30 border-2 border-border/40 focus:border-primary focus:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] rounded-xl text-[28px] font-bold outline-none transition-all tabular-nums"
                 />
+                <p
+                  id="reward-help"
+                  className={
+                    inputError
+                      ? "mt-2 text-xs text-destructive font-medium"
+                      : "mt-2 text-xs text-muted-foreground"
+                  }
+                >
+                  {inputError ??
+                    "Tap a percentage or enter an amount manually."}
+                </p>
               </div>
-              <div className="mt-3 flex items-center gap-2">
+            )}
+
+            {!walletEmpty && (
+              <div className="flex items-center gap-2">
                 {[0.25, 0.5, 0.75, 1.0].map((ratio) => {
                   const chipPaise = Math.floor(preview.maxRedeemPaise * ratio);
                   const chipRupees = (chipPaise / 100).toString();
@@ -369,7 +342,7 @@ export function RewardCalculationStep() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="h-12 flex-1 rounded-lg text-xs font-semibold"
+                      className="h-10 flex-1 rounded-lg text-xs font-semibold"
                       onClick={() => setRewardInput(chipRupees)}
                     >
                       {label}
@@ -377,100 +350,94 @@ export function RewardCalculationStep() {
                   );
                 })}
               </div>
-              <p
-                id="reward-help"
-                className={
-                  inputError
-                    ? "mt-2 text-xs text-destructive"
-                    : "mt-2 text-xs text-muted-foreground"
-                }
-              >
-                {inputError ?? "Tap a percentage or enter an amount manually."}
+            )}
+          </div>
+
+          {/* Reward Earned Preview */}
+          <div className="mt-5 pt-4 border-t border-border/40 flex justify-between items-center">
+            <div>
+              <p className="text-[13px] text-muted-foreground font-medium">
+                Earn Today
               </p>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card>
-          <CardContent className="space-y-3 p-5">
-            <div className="flex items-center gap-2">
-              <Gift className="size-4 text-primary" aria-hidden="true" />
-              <h2 className="font-medium">Reward summary</h2>
+              <p className="text-[11px] text-muted-foreground/70">
+                {preview.rewardPercentage}% of Final Pay
+              </p>
             </div>
-            <SummaryRow
-              label="Subtotal"
-              value={formatCurrency(preview.subtotalPaise)}
-            />
-            <SummaryRow
-              label="Reward used"
-              value={`−${formatCurrency(preview.rewardAppliedPaise)}`}
-            />
-            <div className="border-t pt-3">
-              <SummaryRow
-                label="Final pay"
-                value={formatCurrency(preview.finalPaidPaise)}
-                emphasis
-              />
-            </div>
-            <div className="flex items-center justify-between gap-4 rounded-lg bg-[var(--color-success)]/10 px-3 py-2.5 text-sm">
-              <span className="flex items-center gap-2 font-medium text-foreground">
-                <CheckCircle
-                  className="size-4 text-[var(--color-success)]"
-                  aria-hidden="true"
-                />
-                Reward earned
-              </span>
-              <span className="font-semibold tabular-nums text-[var(--color-success)]">
-                +{formatCurrency(preview.rewardEarnedPaise)}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {preview.requiresOtp ? (
-          <Alert className="border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10">
-            <AlertCircle
-              className="size-4 text-[var(--color-warning)]"
-              aria-hidden="true"
-            />
-            <AlertDescription>
-              Reward redemption requires customer OTP verification before the
-              visit can be completed.
-            </AlertDescription>
-          </Alert>
-        ) : null}
+            <p className="font-bold text-[15px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+              +{formatCurrency(preview.rewardEarnedPaise)}
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </p>
+          </div>
+        </div>
 
         {submitError ? (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="mt-2">
             <AlertCircle className="size-4" aria-hidden="true" />
             <AlertDescription>{submitError}</AlertDescription>
           </Alert>
         ) : null}
       </main>
 
-      <StickyCTA>
-        <div className="flex flex-col gap-2">
-          <Button
-            size="full"
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(16px+env(safe-area-inset-bottom,0px))] bg-card/90 backdrop-blur-xl border-t border-border/20 shadow-[0_-8px_32px_rgba(0,0,0,0.08)] z-10">
+        <div className="mx-auto max-w-lg">
+          <button
+            type="button"
+            disabled={isPending || !!inputError}
             onClick={handleContinue}
-            disabled={Boolean(inputError) || isPending}
-            loading={isPending}
+            className="w-full min-h-[56px] bg-primary text-primary-foreground font-semibold text-[16px] rounded-xl disabled:opacity-50 active:scale-[0.97] transition-all cursor-pointer shadow-[0_4px_16px_rgba(var(--primary),0.3)] flex items-center justify-center gap-2"
           >
-            Continue to summary
-          </Button>
-          {preview.rewardAppliedPaise > 0 ? (
-            <Button
-              size="touch"
-              variant="ghost"
-              onClick={handleContinueWithoutReward}
-              disabled={isPending}
-              className="w-full"
-            >
-              Continue without reward
-            </Button>
-          ) : null}
+            {isPending ? (
+              <>
+                <svg
+                  className="animate-spin h-5 w-5 text-primary-foreground"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <span>Processing...</span>
+              </>
+            ) : (
+              "Continue to Review"
+            )}
+          </button>
+          {!walletEmpty && (
+            <div className="mt-3 text-center">
+              <Button
+                variant="link"
+                size="sm"
+                className="text-xs text-muted-foreground h-auto p-0"
+                onClick={handleContinueWithoutReward}
+                disabled={isPending}
+              >
+                Skip, don&apos;t redeem reward
+              </Button>
+            </div>
+          )}
         </div>
-      </StickyCTA>
+      </div>
     </div>
   );
 }

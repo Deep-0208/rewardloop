@@ -1,6 +1,4 @@
 "use client";
-import { motion, AnimatePresence } from "motion/react";
-
 import {
   useCallback,
   useEffect,
@@ -16,16 +14,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OTPInput } from "@/components/forms/otp-input";
 import { EmptyState, ErrorState } from "@/components/feedback";
-import { StickyCTA } from "@/components/layout";
 import { PageHeader } from "@/components/page-header";
 import {
   AlertCircle,
   CheckCircle,
-  Gift,
   Receipt,
-  Tag,
   User,
-  Wallet,
+  Tag,
 } from "@/components/icons";
 import { ROUTES } from "@/constants/routes";
 import { formatCurrency } from "@/utils";
@@ -46,37 +41,6 @@ import type {
   CheckoutSummaryResponse,
   VisitPaymentMethod,
 } from "../types";
-
-function AmountRow({
-  label,
-  value,
-  emphasis = false,
-}: {
-  readonly label: string;
-  readonly value: string;
-  readonly emphasis?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 text-sm">
-      <span
-        className={
-          emphasis ? "font-semibold text-foreground" : "text-muted-foreground"
-        }
-      >
-        {label}
-      </span>
-      <span
-        className={
-          emphasis
-            ? "text-base font-semibold tabular-nums"
-            : "font-medium tabular-nums"
-        }
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
 
 function CheckoutLine({ item }: { readonly item: CheckoutLineItem }) {
   return (
@@ -157,6 +121,7 @@ export function CheckoutSummaryStep() {
         : null,
     [customer, items, rewardAppliedPaise],
   );
+
   useEffect(() => {
     if (resendSeconds <= 0) return;
     const timer = window.setInterval(
@@ -175,6 +140,7 @@ export function CheckoutSummaryStep() {
       });
     return generateCheckoutSummary(requestInput);
   }, [requestInput]);
+
   const applySummaryResult = useCallback(
     (result: CheckoutSummaryResponse) => {
       if (!result.success) {
@@ -188,6 +154,7 @@ export function CheckoutSummaryStep() {
     },
     [setCheckoutSummary],
   );
+
   useEffect(() => {
     let cancelled = false;
     void requestSummary().then((result) => {
@@ -199,12 +166,14 @@ export function CheckoutSummaryStep() {
   }, [applySummaryResult, requestSummary]);
 
   const handleBack = useCallback(() => setStep("reward"), [setStep]);
+
   const handleRetry = useCallback(() => {
     if (!requestInput) return;
     setIsLoading(true);
     setLoadError(null);
     void refreshCheckoutSummary(requestInput).then(applySummaryResult);
   }, [applySummaryResult, requestInput]);
+
   const handleSendOtp = useCallback(
     (isRetry = false) => {
       if (!customer || !summary) return;
@@ -226,6 +195,7 @@ export function CheckoutSummaryStep() {
     },
     [customer, setOtpVerifiedToken, startOtpTransition, summary],
   );
+
   const handleVerifyOtp = useCallback(
     (otp: string) => {
       if (!customer) return;
@@ -243,6 +213,7 @@ export function CheckoutSummaryStep() {
     },
     [customer, setOtpVerifiedToken, startOtpTransition],
   );
+
   const handleCompleteVisit = useCallback(async () => {
     if (!requestInput || !summary) return;
     setCompletionError(null);
@@ -295,6 +266,7 @@ export function CheckoutSummaryStep() {
         />
       </div>
     );
+
   if (isLoading) return <CheckoutSummarySkeleton />;
   if (loadError || !summary)
     return (
@@ -321,14 +293,15 @@ export function CheckoutSummaryStep() {
     (otpState === "verified" && Boolean(otpVerifiedToken));
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col pb-[120px] bg-muted/10 relative">
       <PageHeader
         title="Review bill"
         subtitle="Step 4 of 4"
         onBack={handleBack}
       />
-      <main className="flex flex-1 flex-col gap-4 px-4 pt-2 pb-5">
-        <Card>
+
+      <main className="flex flex-1 flex-col p-4 animate-fade-in relative z-0">
+        <Card className="mb-4">
           <CardContent className="flex items-center gap-3 p-4">
             <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <User className="size-5" aria-hidden="true" />
@@ -342,8 +315,9 @@ export function CheckoutSummaryStep() {
             </div>
           </CardContent>
         </Card>
+
         {services.length > 0 ? (
-          <Card>
+          <Card className="mb-4">
             <CardContent className="p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h2 className="flex items-center gap-2 font-medium">
@@ -362,8 +336,9 @@ export function CheckoutSummaryStep() {
             </CardContent>
           </Card>
         ) : null}
+
         {products.length > 0 ? (
-          <Card>
+          <Card className="mb-4">
             <CardContent className="p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h2 className="flex items-center gap-2 font-medium">
@@ -382,210 +357,192 @@ export function CheckoutSummaryStep() {
             </CardContent>
           </Card>
         ) : null}
-        <Card>
-          <CardContent className="space-y-3 p-5">
-            <h2 className="font-medium">Payment summary</h2>
-            <AmountRow
-              label="Service subtotal"
-              value={formatCurrency(summary.serviceSubtotalPaise)}
-            />
-            <AmountRow
-              label="Product subtotal"
-              value={formatCurrency(summary.productSubtotalPaise)}
-            />
-            <AmountRow
-              label="Total subtotal"
-              value={formatCurrency(summary.subtotalPaise)}
-            />
-            <AmountRow
-              label="Reward redeemed"
-              value={`−${formatCurrency(summary.rewardUsedPaise)}`}
-            />
-            <div className="border-t pt-3">
-              <AmountRow
-                label="Final payable"
-                value={formatCurrency(summary.finalPayablePaise)}
-                emphasis
-              />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-[var(--color-success)]/20 bg-[var(--color-success)]/5">
-          <CardContent className="space-y-3 p-4">
-            <div className="flex items-center gap-2">
-              <Gift
-                className="size-4 text-[var(--color-success)]"
-                aria-hidden="true"
-              />
-              <h2 className="font-medium">Reward after this visit</h2>
-            </div>
-            <AmountRow
-              label="Reward earned"
-              value={`+${formatCurrency(summary.rewardEarnedPaise)}`}
-            />
-            <div className="flex items-center justify-between gap-3 rounded-lg bg-background/70 px-3 py-2.5">
-              <span className="flex items-center gap-2 text-sm font-medium">
-                <Wallet className="size-4 text-primary" aria-hidden="true" />
-                Wallet after visit
+
+        {/* Bill Summary Card */}
+        <div className="bg-card rounded-2xl p-6 mb-3 flex flex-col items-center justify-center shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-border/40">
+          <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-semibold mb-1">
+            FINAL PAY
+          </p>
+          <h2 className="text-[40px] font-bold text-primary leading-none tracking-tight flex items-start">
+            <span className="text-[20px] mt-1 mr-0.5">₹</span>
+            {(summary.finalPayablePaise / 100).toFixed(0)}
+          </h2>
+          {summary.rewardUsedPaise > 0 && (
+            <p className="text-[13px] text-muted-foreground font-medium mt-3">
+              Original Bill {formatCurrency(summary.subtotalPaise)} •{" "}
+              <span className="text-emerald-600 dark:text-emerald-400">
+                Saved {formatCurrency(summary.rewardUsedPaise)}
               </span>
-              <span className="font-semibold tabular-nums">
-                {formatCurrency(summary.walletAfterVisitPaise)}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+            </p>
+          )}
+        </div>
+
         {summary.finalPayablePaise > 0 ? (
-          <Card>
-            <CardContent className="space-y-3 p-4">
-              <h2 className="font-medium">Payment method</h2>
-              <div
-                className="grid grid-cols-2 gap-3"
-                role="radiogroup"
-                aria-label="Payment method"
+          <div className="mb-6 mt-4">
+            <p className="text-[12px] text-muted-foreground font-semibold uppercase tracking-wider mb-3 pl-1">
+              Payment Method
+            </p>
+            <div className="flex bg-muted/40 rounded-[20px] p-1 gap-1 border border-border/40">
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("cash")}
+                className={`
+                  flex-1 flex items-center justify-center gap-2 min-h-[56px] rounded-2xl transition-all cursor-pointer
+                  ${effectivePaymentMethod === "cash" ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgba(var(--primary),0.25)] font-semibold" : "text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5"}
+                `}
               >
-                <Button
-                  size="touch"
-                  variant={
-                    effectivePaymentMethod === "cash" ? "default" : "outline"
-                  }
-                  onClick={() => setPaymentMethod("cash")}
-                  role="radio"
-                  aria-checked={effectivePaymentMethod === "cash"}
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
                 >
-                  Cash
-                </Button>
-                <Button
-                  size="touch"
-                  variant={
-                    effectivePaymentMethod === "online" ? "default" : "outline"
-                  }
-                  onClick={() => setPaymentMethod("online")}
-                  role="radio"
-                  aria-checked={effectivePaymentMethod === "online"}
+                  <rect x="2" y="6" width="20" height="12" rx="2" />
+                  <circle cx="12" cy="12" r="2" />
+                  <path d="M6 12h.01M18 12h.01" />
+                </svg>
+                <span className="text-[15px]">Cash</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("online")}
+                className={`
+                  flex-1 flex items-center justify-center gap-2 min-h-[56px] rounded-2xl transition-all cursor-pointer
+                  ${effectivePaymentMethod === "online" ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgba(var(--primary),0.25)] font-semibold" : "text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5"}
+                `}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
                 >
-                  Online
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <rect x="7" y="7" width="3" height="3" />
+                  <rect x="14" y="7" width="3" height="3" />
+                  <rect x="7" y="14" width="3" height="3" />
+                  <rect x="14" y="14" width="3" height="3" />
+                </svg>
+                <span className="text-[14px]">Online</span>
+              </button>
+            </div>
+          </div>
         ) : (
-          <Alert className="border-muted">
+          <Alert className="border-emerald-500/30 bg-emerald-500/10 mt-4 rounded-2xl">
             <CheckCircle
-              className="size-4 text-[var(--color-success)]"
+              className="size-4 text-emerald-600 dark:text-emerald-400"
               aria-hidden="true"
             />
-            <AlertDescription>
+            <AlertDescription className="text-emerald-800 dark:text-emerald-200 font-medium">
               This reward fully covers the visit. No payment is needed.
             </AlertDescription>
           </Alert>
         )}
-        {summary.requiresOtp ? (
-          <Card>
-            <CardContent className="space-y-4 p-4">
-              <div>
-                <h2 className="font-medium">Confirm reward redemption</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Send a 6-digit OTP to {customer.phone} before completing this
-                  visit.
-                </p>
-              </div>
-              <AnimatePresence mode="popLayout">
-                {otpState === "idle" ? (
-                  <motion.div
-                    key="idle"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Button
-                      size="touch"
-                      className="w-full"
-                      onClick={() => handleSendOtp()}
-                      loading={isOtpPending}
-                    >
-                      Send verification code
-                    </Button>
-                  </motion.div>
-                ) : null}
-                {otpState === "sent" ? (
-                  <motion.div
-                    key="sent"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-4"
-                  >
-                    <OTPInput
-                      key={otpResetKey}
-                      label="Enter the 6-digit OTP"
-                      error={otpError ?? undefined}
-                      disabled={isOtpPending}
-                      onComplete={handleVerifyOtp}
-                    />
-                    <Button
-                      variant="outline"
-                      size="touch"
-                      className="w-full"
-                      disabled={resendSeconds > 0 || isOtpPending}
-                      onClick={() => handleSendOtp(true)}
-                    >
-                      {resendSeconds > 0
-                        ? `Resend code in ${resendSeconds}s`
-                        : "Resend code"}
-                    </Button>
-                  </motion.div>
-                ) : null}
-                {otpState === "verified" ? (
-                  <motion.div
-                    key="verified"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Alert className="border-[var(--color-success)]/30 bg-[var(--color-success)]/10">
-                      <CheckCircle
-                        className="size-4 text-[var(--color-success)]"
-                        aria-hidden="true"
-                      />
-                      <AlertDescription>
-                        Reward OTP verified. You can complete this visit.
-                      </AlertDescription>
-                    </Alert>
-                  </motion.div>
-                ) : null}
-              </AnimatePresence>
-              {otpState === "idle" && otpError ? (
-                <p className="text-sm text-destructive" role="alert">
-                  {otpError}
-                </p>
-              ) : null}
-            </CardContent>
-          </Card>
-        ) : null}
+
         {completionError ? (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="mt-4 rounded-2xl">
             <AlertCircle className="size-4" aria-hidden="true" />
             <AlertDescription>{completionError}</AlertDescription>
           </Alert>
         ) : null}
       </main>
-      <StickyCTA>
-        <Button
-          size="full"
-          onClick={handleCompleteVisit}
-          disabled={!otpVerified || isCompleting || isOtpPending}
-          loading={isCompleting}
-        >
-          Complete Visit
-        </Button>
-        {summary.requiresOtp && !otpVerified ? (
-          <p className="mt-2 text-center text-xs text-muted-foreground">
-            Verify the reward OTP to enable completion.
-          </p>
-        ) : null}
-      </StickyCTA>
+
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(16px+env(safe-area-inset-bottom,0px))] bg-card/90 backdrop-blur-xl border-t border-border/20 shadow-[0_-8px_32px_rgba(0,0,0,0.08)] z-10">
+        <div className="mx-auto max-w-lg">
+          <button
+            type="button"
+            disabled={
+              isCompleting ||
+              isOtpPending ||
+              (summary.requiresOtp && otpState === "sent" && !otpVerifiedToken)
+            }
+            onClick={
+              summary.requiresOtp && !otpVerifiedToken && otpState === "idle"
+                ? () => handleSendOtp()
+                : handleCompleteVisit
+            }
+            className="w-full min-h-[56px] bg-primary text-primary-foreground font-semibold text-[16px] rounded-xl disabled:opacity-50 active:scale-[0.97] transition-all cursor-pointer shadow-[0_4px_16px_rgba(var(--primary),0.3)] flex items-center justify-center gap-2"
+          >
+            {isCompleting || isOtpPending ? (
+              <>
+                <svg
+                  className="animate-spin h-5 w-5 text-primary-foreground"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <span>
+                  {isOtpPending ? "Sending OTP..." : "Completing Visit..."}
+                </span>
+              </>
+            ) : summary.requiresOtp && !otpVerifiedToken ? (
+              "Verify Reward to Complete"
+            ) : (
+              "Complete Visit"
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Inline OTP Bottom Sheet Overlay */}
+      {summary.requiresOtp && otpState === "sent" && !otpVerifiedToken && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300"
+            onClick={() => setOtpState("idle")}
+          />
+          <div className="relative bg-card w-full rounded-t-3xl p-6 pb-[calc(32px+env(safe-area-inset-bottom,0px))] animate-in slide-in-from-bottom-full duration-300">
+            <div className="w-10 h-1 bg-border rounded-full mx-auto mb-6" />
+
+            <h3 className="text-[20px] font-bold text-foreground mb-1">
+              Verify Reward
+            </h3>
+            <p className="text-[14px] text-muted-foreground mb-8">
+              OTP sent to {customer.phone.replace(/.(?=.{4})/g, "x")}
+            </p>
+
+            <div className="mb-8">
+              <OTPInput
+                key={otpResetKey}
+                label=""
+                error={otpError ?? undefined}
+                disabled={isOtpPending}
+                onComplete={handleVerifyOtp}
+              />
+            </div>
+
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full rounded-xl font-semibold"
+              disabled={resendSeconds > 0 || isOtpPending}
+              onClick={() => handleSendOtp(true)}
+            >
+              {resendSeconds > 0
+                ? `Resend code in ${resendSeconds}s`
+                : "Resend code"}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
