@@ -56,19 +56,27 @@ export default async function middleware(request: NextRequest) {
 
   // 1. Rate Limiting
   const ip = getTrustedClientIp(request);
-  
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    const { globalRateLimit, authRateLimit } = await import("@/lib/rate-limit");
-    
-    let rateLimitResult;
-    if (isAuthRoute(pathname)) {
-      rateLimitResult = await authRateLimit.limit(ip);
-    } else {
-      rateLimitResult = await globalRateLimit.limit(ip);
-    }
 
-    if (!rateLimitResult.success) {
-      return new NextResponse("Too Many Requests", { status: 429 });
+  if (
+    process.env.UPSTASH_REDIS_REST_URL &&
+    process.env.UPSTASH_REDIS_REST_TOKEN
+  ) {
+    try {
+      const { globalRateLimit, authRateLimit } =
+        await import("@/lib/rate-limit");
+
+      let rateLimitResult;
+      if (isAuthRoute(pathname)) {
+        rateLimitResult = await authRateLimit.limit(ip);
+      } else {
+        rateLimitResult = await globalRateLimit.limit(ip);
+      }
+
+      if (!rateLimitResult.success) {
+        return new NextResponse("Too Many Requests", { status: 429 });
+      }
+    } catch (error) {
+      console.error("[Middleware] Rate limiting error (failing open):", error);
     }
   }
 

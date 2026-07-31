@@ -198,7 +198,8 @@ ALTER TABLE public.transactions ADD CONSTRAINT chk_transaction_financial_balance
 
 -- ==============================================================================
 -- 8. P2-03 ROLE SCOPING: Update complete_visit to allow any active business staff
--- ==============================================================================
+DROP FUNCTION IF EXISTS public.complete_visit(uuid, uuid, jsonb, integer, text, uuid, uuid, uuid);
+
 CREATE OR REPLACE FUNCTION public.complete_visit(
   p_idempotency_key UUID,
   p_customer_id UUID,
