@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     "Development/**",
     "claude-code-security-review/**",
     "dump-footer.js",
+    "supabase/functions/**",
     "*.js",
   ]),
   {
