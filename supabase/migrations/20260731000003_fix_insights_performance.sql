@@ -71,7 +71,7 @@ AS $$
   FROM (
     SELECT
       item_name,
-      MAX(catalog_item_id) as catalog_item_id,
+      MIN(catalog_item_id::text)::uuid as catalog_item_id,
       SUM(quantity) as total_qty,
       SUM(total_price) as total_rev
     FROM public.transaction_items
