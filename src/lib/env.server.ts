@@ -30,7 +30,9 @@ const serverOnlySchema = z.object({
       "REWARDLOOP_SESSION_SECRET is required and must be at least 32 characters",
     ),
   UPSTASH_REDIS_REST_URL: z.string().url("UPSTASH_REDIS_REST_URL is required"),
-  UPSTASH_REDIS_REST_TOKEN: z.string().min(1, "UPSTASH_REDIS_REST_TOKEN is required"),
+  UPSTASH_REDIS_REST_TOKEN: z
+    .string()
+    .min(1, "UPSTASH_REDIS_REST_TOKEN is required"),
 });
 
 export interface ServerEnv extends ClientEnv {
@@ -57,7 +59,8 @@ export function getServerEnv(): ServerEnv {
   const clientEnv = getClientEnv();
 
   const serverOnly = serverOnlySchema.parse({
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    SUPABASE_SERVICE_ROLE_KEY:
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY,
     REWARDLOOP_SESSION_SECRET: process.env.REWARDLOOP_SESSION_SECRET,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
