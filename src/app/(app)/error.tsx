@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import posthog from "posthog-js";
 import { ErrorState } from "@/components/feedback/error-state";
 import { createLogger } from "@/lib/logger";
 
@@ -19,6 +20,7 @@ export default function AppErrorBoundary({
       digest: error.digest,
       stack: error.stack,
     });
+    posthog.captureException(error);
   }, [error]);
 
   return (

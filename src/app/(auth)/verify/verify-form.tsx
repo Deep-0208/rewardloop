@@ -24,6 +24,7 @@ import {
 } from "@/features/auth/schemas/otp-schema";
 import { verifyOTP } from "@/features/auth/actions/verify-otp";
 import { resendOTP } from "@/features/auth/actions/resend-otp";
+import posthog from "posthog-js";
 
 export default function VerifyForm({ phone }: { phone: string }) {
   const router = useRouter();
@@ -47,6 +48,14 @@ export default function VerifyForm({ phone }: { phone: string }) {
         setServerError(result.error);
         return;
       }
+      posthog.identify(result.data.user.id, {
+        phone: result.data.user.phone,
+        role: result.data.user.role,
+      });
+      posthog.capture("login_completed", {
+        role: result.data.user.role,
+        has_business: result.data.business !== null,
+      });
       router.replace(result.data.redirectTo);
     });
   };

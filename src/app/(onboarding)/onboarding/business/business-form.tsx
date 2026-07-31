@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Gift, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
+import posthog from "posthog-js";
 
 import { createBusiness } from "@/features/onboarding/actions/create-business";
 import {
@@ -106,6 +107,11 @@ export function BusinessForm() {
         setServerError(result.error ?? "An unexpected error occurred.");
         return;
       }
+      posthog.capture("business_created", {
+        business_type: values.business_type,
+        service_count: values.services?.length ?? 0,
+        product_count: values.products?.length ?? 0,
+      });
       router.replace("/dashboard");
     });
   };

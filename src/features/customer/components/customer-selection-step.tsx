@@ -23,6 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import posthog from "posthog-js";
 import { searchCustomer } from "../actions/search-customer";
 import { createCustomer } from "../actions/create-customer";
 import { prefetchCustomers } from "../actions/prefetch-customers";
@@ -162,11 +163,15 @@ export function CustomerSelectionStep() {
         return;
       }
       customerCache.set(formattedPhone, result.data);
+      posthog.capture("customer_created");
       handleSelectCustomer(result.data);
     });
   }
 
   function handleSelectCustomer(customer: Customer) {
+    posthog.capture("customer_selected", {
+      customer_total_visits: customer.total_visits,
+    });
     setCustomer({
       id: customer.id,
       phone: customer.phone,
