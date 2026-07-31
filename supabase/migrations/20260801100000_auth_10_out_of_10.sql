@@ -196,13 +196,28 @@ DECLARE
   v_user public.users%ROWTYPE;
   v_session_id UUID;
 BEGIN
-  -- Find or create user
+  -- 1. Find user by auth_user_id first
   SELECT * INTO v_user FROM public.users WHERE auth_user_id = p_auth_user_id FOR UPDATE;
 
   IF NOT FOUND THEN
-    INSERT INTO public.users (auth_user_id, phone, role, status, session_version, onboarding_status, last_login_at)
-    VALUES (p_auth_user_id, p_phone, 'owner', 'active', 1, 'NOT_STARTED', now())
-    RETURNING * INTO v_user;
+    -- 2. If not found by auth_user_id, check if user exists by phone number
+    SELECT * INTO v_user FROM public.users WHERE phone = p_phone ORDER BY created_at ASC LIMIT 1 FOR UPDATE;
+
+    IF FOUND THEN
+      -- Re-link auth_user_id to existing user record
+      UPDATE public.users
+      SET auth_user_id = p_auth_user_id,
+          session_version = session_version + 1,
+          last_login_at = now(),
+          updated_at = now()
+      WHERE id = v_user.id
+      RETURNING * INTO v_user;
+    ELSE
+      -- Brand new user
+      INSERT INTO public.users (auth_user_id, phone, role, status, session_version, onboarding_status, last_login_at)
+      VALUES (p_auth_user_id, p_phone, 'owner', 'active', 1, 'NOT_STARTED', now())
+      RETURNING * INTO v_user;
+    END IF;
   ELSE
     IF v_user.status = 'suspended' THEN
       RETURN jsonb_build_object('success', false, 'code', 'ACCOUNT_SUSPENDED', 'message', 'Your account has been suspended.');
@@ -216,16 +231,19 @@ BEGIN
     RETURNING * INTO v_user;
   END IF;
 
-  -- Register new device session if token hash provided
+  -- 3. Register new device session idempotently
   IF p_session_token_hash IS NOT NULL AND p_session_token_hash != '' THEN
     INSERT INTO public.user_sessions (
       user_id, session_token_hash, device_info, ip_address, last_active_at, expires_at
     ) VALUES (
       v_user.id, p_session_token_hash, p_device_info, p_ip_address, now(), now() + interval '30 days'
-    ) RETURNING id INTO v_session_id;
+    )
+    ON CONFLICT (session_token_hash) DO UPDATE
+    SET last_active_at = now(), expires_at = now() + interval '30 days'
+    RETURNING id INTO v_session_id;
   END IF;
 
-  -- Log login audit event
+  -- 4. Log login audit event
   IF v_user.business_id IS NOT NULL THEN
     INSERT INTO public.audit_logs (business_id, user_id, event, entity, entity_id, new_value)
     VALUES (
