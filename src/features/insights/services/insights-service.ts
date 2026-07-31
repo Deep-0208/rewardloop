@@ -77,17 +77,33 @@ async function fetchTopCustomers(
   return (data as TopCustomer[]) ?? [];
 }
 
+import { serverCache } from "@/lib/server-cache";
+
 /**
  * Fetch all insights data in a single coordinated call.
  */
 export async function getInsightsData(
   supabase: SupabaseClient,
+  businessId?: string,
 ): Promise<InsightsData> {
-  const [overview, topServices, topCustomers] = await Promise.all([
-    fetchOverview(supabase),
-    fetchTopServices(supabase),
-    fetchTopCustomers(supabase),
-  ]);
+  const fetchFn = async (): Promise<InsightsData> => {
+    const [overview, topServices, topCustomers] = await Promise.all([
+      fetchOverview(supabase),
+      fetchTopServices(supabase),
+      fetchTopCustomers(supabase),
+    ]);
 
-  return { overview, topServices, topCustomers };
+    return { overview, topServices, topCustomers };
+  };
+
+  if (businessId) {
+    return serverCache.fetch<InsightsData>(
+      "insights_data",
+      fetchFn,
+      { ttlSeconds: 300, businessId },
+    );
+  }
+
+  return fetchFn();
 }
+

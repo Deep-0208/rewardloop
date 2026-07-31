@@ -38,7 +38,7 @@ export async function getDashboardData(): Promise<GetDashboardDataResponse> {
       throw new AppError("Authentication required.", "AUTH_REQUIRED");
     }
 
-    const data = await getDashboard(supabase);
+    const data = await getDashboard(supabase, validation.businessId ?? undefined);
     return actionSuccess(data);
   } catch (error) {
     return handleActionError(error);

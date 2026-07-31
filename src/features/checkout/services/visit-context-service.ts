@@ -19,10 +19,13 @@ export interface VisitContext {
 }
 
 function throwSessionError(
-  reason: "AUTH_REQUIRED" | "SESSION_REVOKED" | "ACCOUNT_SUSPENDED" | undefined,
+  reason: "AUTH_REQUIRED" | "SESSION_REVOKED" | "ACCOUNT_SUSPENDED" | "SESSION_EXPIRED" | undefined,
 ): never {
   if (reason === "ACCOUNT_SUSPENDED") {
     throw new AppError("Your account has been suspended.", "ACCOUNT_SUSPENDED");
+  }
+  if (reason === "SESSION_EXPIRED") {
+    throw new AppError("Your session has expired. Please log in again.", "SESSION_EXPIRED");
   }
   if (reason === "SESSION_REVOKED") {
     throw new AppError(

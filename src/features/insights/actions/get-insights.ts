@@ -37,7 +37,7 @@ export async function getInsights(): Promise<GetInsightsResponse> {
       throw new AppError("Authentication required.", "AUTH_REQUIRED");
     }
 
-    const data = await getInsightsData(supabase);
+    const data = await getInsightsData(supabase, validation.businessId ?? undefined);
     return actionSuccess(data);
   } catch (error) {
     return handleActionError(error);

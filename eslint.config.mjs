@@ -13,8 +13,8 @@ const eslintConfig = defineConfig([
     "graphify-out/**",
     "Documents/**",
     "Development/**",
-    ".venv/**",
     "claude-code-security-review/**",
+    "dump-footer.js",
     "*.js",
   ]),
   {

@@ -1,4 +1,4 @@
-import { LoadingScreen } from "@/components/loading-screen";
+import { LoadingState } from "@/components/ui/feedback-states";
 import { AppShell } from "@/components/app-shell";
 
 /**
@@ -10,7 +10,7 @@ import { AppShell } from "@/components/app-shell";
 export default function RootLoading() {
   return (
     <AppShell>
-      <LoadingScreen />
+      <LoadingState variant="full" />
     </AppShell>
   );
 }

@@ -8,6 +8,5 @@ export {
   ANIMATION,
 } from "./config";
 export { STORAGE_KEYS } from "./storage-keys";
-export { QUERY_KEYS } from "./query-keys";
 export { REGEX } from "./regex";
 export { LIMITS } from "./limits";

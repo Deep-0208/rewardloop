@@ -1,8 +1,8 @@
 /**
  * RewardLoop — Signed Session Cookie Utilities.
  *
- * Provides HMAC SHA-256 signing and verification for device session versioning (`rl_sv`).
- * Prevents client-side tampering of the session version cookie.
+ * Provides HMAC SHA-256 signing and verification for device session tracking (`rl_sv`).
+ * Prevents client-side tampering of the session cookie.
  *
  * @module features/auth/utils/session-cookie
  */
@@ -26,6 +26,18 @@ function getSecretKey(customSecret?: string): string {
     );
   }
   return secret;
+}
+
+/**
+ * Computes SHA-256 hash of a raw cookie token for DB lookup.
+ */
+export async function hashSessionToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 /**

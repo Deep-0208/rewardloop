@@ -17,7 +17,7 @@ function Avatar({
       data-slot="avatar"
       data-size={size}
       className={cn(
-        "group/avatar relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:border-border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 dark:after:mix-blend-lighten",
+        "group/avatar relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:border-border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6",
         className,
       )}
       {...props}
@@ -99,6 +99,50 @@ function AvatarGroupCount({
   );
 }
 
+import { getInitials, getAvatarPalette } from "@/utils/avatar";
+
+interface CustomerAvatarProps extends React.ComponentProps<"div"> {
+  name?: string | null;
+  seed?: string | null;
+  size?: "sm" | "default" | "md" | "lg" | "xl";
+}
+
+const avatarSizeClasses = {
+  sm: "size-6 text-[10px] font-bold tracking-tight",
+  default: "size-8 text-xs font-bold tracking-tight",
+  md: "size-9 text-xs font-bold tracking-tight",
+  lg: "size-[44px] text-[14px] font-bold tracking-wide",
+  xl: "size-14 text-base font-bold tracking-wide",
+} as const;
+
+function CustomerAvatar({
+  name,
+  seed,
+  size = "lg",
+  className,
+  ...props
+}: CustomerAvatarProps) {
+  const initials = getInitials(name);
+  const palette = getAvatarPalette(seed || name);
+
+  return (
+    <div
+      data-slot="customer-avatar"
+      className={cn(
+        "relative flex shrink-0 items-center justify-center rounded-full select-none shadow-2xs transition-transform duration-200",
+        palette.bg,
+        palette.text,
+        palette.ring,
+        avatarSizeClasses[size],
+        className,
+      )}
+      {...props}
+    >
+      {initials}
+    </div>
+  );
+}
+
 export {
   Avatar,
   AvatarImage,
@@ -106,4 +150,6 @@ export {
   AvatarGroup,
   AvatarGroupCount,
   AvatarBadge,
+  CustomerAvatar,
 };
+

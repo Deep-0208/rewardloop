@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/page-header";
 import { formatCustomerDisplayName } from "@/utils";
+import { LoadingState, ErrorState } from "@/components/ui/feedback-states";
 import {
   CheckCircle,
   UserPlus,
-  AlertCircle,
   Loader2,
 } from "@/components/icons";
 import {
@@ -23,6 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { CustomerAvatar } from "@/components/ui/avatar";
 import posthog from "posthog-js";
 import { searchCustomer } from "../actions/search-customer";
 import { createCustomer } from "../actions/create-customer";
@@ -42,7 +43,6 @@ const createFormSchema = z.object({
 
 import {
   customerCache,
-  hasPrefetchedAll,
   setHasPrefetchedAll,
   cacheCustomerList,
 } from "../utils/customer-cache";
@@ -137,7 +137,7 @@ export function CustomerSelectionStep() {
   useEffect(() => {
     triggerCatalogPrefetch();
 
-    if (hasPrefetchedAll) return;
+    if (customerCache.hasPrefetchedAll) return;
 
     startTransition(async () => {
       const result = await prefetchCustomers();
@@ -221,7 +221,7 @@ export function CustomerSelectionStep() {
                         inputMode="numeric"
                         pattern="[0-9]*"
                         maxLength={10}
-                        className="pl-[48px] h-12 bg-card border-2 border-border/60 focus:border-primary focus:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] rounded-[var(--radius-input)] text-[17px] font-medium outline-none transition-all shadow-[var(--shadow-soft)]"
+                        className="pl-[48px] h-12 bg-card border-2 border-border/60 focus:border-primary focus:shadow-[0_0_0_3px_var(--color-primary-light)] rounded-[var(--radius-input)] text-[17px] font-medium outline-none transition-all shadow-[var(--shadow-soft)]"
                         {...field}
                         onChange={(e) => {
                           const val = e.target.value.replace(/\D/g, "");
@@ -238,7 +238,7 @@ export function CustomerSelectionStep() {
             {searchResult.status === "idle" && (
               <Button
                 type="submit"
-                size="full"
+                size="lg" className="w-full"
                 disabled={phoneValue.length !== 10}
               >
                 Search Customer
@@ -249,10 +249,7 @@ export function CustomerSelectionStep() {
 
         {/* Searching State */}
         {searchResult.status === "searching" && (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground animate-in fade-in">
-            <Loader2 className="size-8 animate-spin text-primary mb-4" />
-            <p>Looking up customer...</p>
-          </div>
+          <LoadingState text="Looking up customer..." className="animate-in fade-in py-12" variant="inline" />
         )}
 
         {/* Found State */}
@@ -264,9 +261,11 @@ export function CustomerSelectionStep() {
 
               <div className="flex items-start justify-between mb-[var(--spacing-sm)] pl-[var(--spacing-s)]">
                 <div className="flex items-center gap-[var(--spacing-s)]">
-                  <div className="w-[44px] h-[44px] rounded-full bg-[var(--color-primary-light)] flex items-center justify-center text-primary font-bold text-[17px]">
-                    {searchResult.data.name?.charAt(0) || "U"}
-                  </div>
+                  <CustomerAvatar
+                    name={searchResult.data.name}
+                    seed={searchResult.data.id || searchResult.data.phone}
+                    size="lg"
+                  />
                   <div>
                     <h3 className="font-semibold text-[17px] text-[var(--color-text-primary)] leading-tight">
                       {formatCustomerDisplayName(
@@ -298,8 +297,8 @@ export function CustomerSelectionStep() {
               <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] bg-background/80 backdrop-blur-xl border-t border-border/40 z-[60]">
                 <div className="max-w-[768px] mx-auto w-full">
                   <Button
-                    size="full"
-                    className="shadow-[0_4px_16px_rgba(79,70,229,0.3)]"
+                    size="lg"
+                    className="w-full shadow-[var(--shadow-hero)]"
                     onClick={() => handleSelectCustomer(searchResult.data!)}
                   >
                     Continue with{" "}
@@ -352,7 +351,7 @@ export function CustomerSelectionStep() {
                           <FormControl>
                             <Input
                               placeholder="e.g. Rahul Kumar"
-                              className="h-[48px] px-[16px] bg-muted border-2 border-transparent focus:border-primary focus:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] rounded-[var(--radius-input)] text-[15px] font-medium outline-none transition-all"
+                              className="h-[48px] px-[16px] bg-muted border-2 border-transparent focus:border-primary focus:shadow-[0_0_0_3px_var(--color-primary-light)] rounded-[var(--radius-input)] text-[15px] font-medium outline-none transition-all"
                               autoComplete="name"
                               {...field}
                             />
@@ -370,8 +369,8 @@ export function CustomerSelectionStep() {
                       <div className="max-w-[768px] mx-auto w-full">
                         <Button
                           type="submit"
-                          size="full"
-                          className="shadow-[0_4px_16px_rgba(79,70,229,0.3)]"
+                          size="lg"
+                          className="w-full shadow-[var(--shadow-hero)]"
                           disabled={isPending}
                         >
                           {isPending ? (
@@ -392,12 +391,12 @@ export function CustomerSelectionStep() {
 
         {/* Error State */}
         {searchResult.status === "error" && (
-          <div className="mt-8 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-destructive flex items-start gap-3 animate-in fade-in">
-            <AlertCircle className="size-5 shrink-0 mt-0.5" />
-            <div className="text-sm font-medium">
-              {searchResult.error || "An unexpected error occurred."}
-            </div>
-          </div>
+          <ErrorState 
+            className="mt-8 animate-in fade-in" 
+            variant="inline" 
+            title="Search failed"
+            description={searchResult.error || "An unexpected error occurred."} 
+          />
         )}
       </div>
     </div>

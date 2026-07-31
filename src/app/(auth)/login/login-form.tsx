@@ -11,11 +11,9 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Checkbox } from "@/components/ui/checkbox";
 
 import { PhoneInput } from "@/features/auth/components/phone-input";
 import {
@@ -39,7 +37,6 @@ export default function LoginForm({
     resolver: zodResolver(phoneSchema),
     defaultValues: {
       phone: initialPhone,
-      termsAccepted: false,
     },
     mode: "onChange",
   });
@@ -115,53 +112,23 @@ export default function LoginForm({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="termsAccepted"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 px-2 py-3 min-h-[48px]">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        className="mt-[3px] rounded-[4px] data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground transition-colors"
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="text-[13px] font-medium text-muted-foreground leading-7 cursor-pointer select-none flex-1">
-                        I agree to the{" "}
-                        <a
-                          href="/terms"
-                          className="font-semibold text-foreground underline decoration-border hover:decoration-primary transition-colors"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Terms of Service
-                        </a>{" "}
-                        and{" "}
-                        <a
-                          href="/privacy"
-                          className="font-semibold text-foreground underline decoration-border hover:decoration-primary transition-colors"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Privacy Policy
-                        </a>
-                        .
-                      </FormLabel>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <Button
-                type="submit"
-                size="full"
-                disabled={isFormDisabled}
-                loading={isPending}
-                className="h-[52px] rounded-[14px] text-[16px] font-bold shadow-[0_8px_20px_rgba(79,70,229,0.2)] transition-all duration-300 hover:shadow-[0_12px_28px_rgba(79,70,229,0.3)] active:scale-[0.98]"
-              >
-                Continue
-              </Button>
+              <div className="flex flex-col gap-3">
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={isFormDisabled}
+                  loading={isPending}
+                  className="w-full h-[52px] rounded-[14px] text-[16px] font-bold shadow-[var(--shadow-hero)] transition-all duration-300 hover:shadow-[var(--shadow-soft)] active:scale-[0.98]"
+                >
+                  Continue
+                </Button>
+                <p className="text-center text-[13px] text-muted-foreground">
+                  By continuing, you agree to our{" "}
+                  <a href="/terms" className="font-medium underline hover:text-foreground">Terms</a>
+                  {" "}and{" "}
+                  <a href="/privacy" className="font-medium underline hover:text-foreground">Privacy Policy</a>.
+                </p>
+              </div>
             </form>
           </Form>
         </div>

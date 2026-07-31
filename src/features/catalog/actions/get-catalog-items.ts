@@ -42,7 +42,16 @@ export async function getCatalogItems(
       throw new AppError("Authentication required.", "AUTH_REQUIRED");
     }
 
-    const items = await getActiveCatalog(supabase, type);
+    const typeKey = type ?? "all";
+    const cacheKey = `business:${validation.businessId}:catalog:${typeKey}`;
+
+    const { serverCache } = await import("@/lib/server-cache");
+    const items = await serverCache.fetch(
+      cacheKey,
+      () => getActiveCatalog(supabase, type),
+      { ttlSeconds: 3600 }
+    );
+    
     return actionSuccess(items);
   } catch (error) {
     return handleActionError(error);

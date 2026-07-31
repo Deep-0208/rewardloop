@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import posthog from "posthog-js";
-import { ErrorScreen } from "@/components/error-screen";
+import { ErrorState } from "@/components/ui/feedback-states";
 import { AppShell } from "@/components/app-shell";
 import { logger } from "@/lib/logger";
 
@@ -29,10 +29,10 @@ export default function RootError({
 
   return (
     <AppShell>
-      <ErrorScreen
+      <ErrorState
         title="Something went wrong"
         description="An unexpected error occurred. Please try again."
-        onRetry={reset}
+        retry={reset}
       />
     </AppShell>
   );

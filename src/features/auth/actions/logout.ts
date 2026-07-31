@@ -1,7 +1,8 @@
 /**
  * RewardLoop — Logout Server Action.
  *
- * Terminates Supabase Auth session and clears HTTP-only session cookies including `rl_sv`.
+ * Terminates Supabase Auth session, revokes device session token in DB,
+ * and clears HTTP-only session cookies including `rl_sv`.
  *
  * @module features/auth/actions/logout
  */
@@ -10,33 +11,35 @@
 
 import { cookies } from "next/headers";
 import type { LogoutResponse } from "../types/auth-types";
-import { SESSION_VERSION_COOKIE } from "../utils/session-cookie";
+import { SESSION_VERSION_COOKIE, hashSessionToken } from "../utils/session-cookie";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { actionSuccess } from "@/lib/api";
 import { handleActionError } from "@/lib/errors";
-
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function logout(): Promise<LogoutResponse> {
   try {
     const supabase = await createServerClient();
+    const cookieStore = await cookies();
+    const cookieValue = cookieStore.get(SESSION_VERSION_COOKIE.name)?.value;
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (user) {
-      // 1. Atomic increment to invalidate the old session version
+    if (user && cookieValue) {
       const adminSupabase = createAdminClient();
-      await adminSupabase.rpc("increment_session_version", {
+      const tokenHash = await hashSessionToken(cookieValue);
+      await adminSupabase.rpc("revoke_device_session", {
         p_auth_user_id: user.id,
+        p_session_token_hash: tokenHash,
       });
     }
 
-    // 2. Sign out of Supabase
+    // Sign out of Supabase
     await supabase.auth.signOut();
 
-    // 3. Clear local device cookies
-    const cookieStore = await cookies();
+    // Clear local device cookies
     cookieStore.delete(SESSION_VERSION_COOKIE.name);
 
     return actionSuccess(undefined);

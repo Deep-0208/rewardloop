@@ -38,7 +38,7 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-import Script from "next/script";
+import { ServiceWorkerRegistry } from "@/components/service-worker-registry";
 
 export default function RootLayout({
   children,
@@ -54,17 +54,7 @@ export default function RootLayout({
       <body className="min-h-dvh w-full flex flex-col font-sans antialiased">
         <Providers>{children}</Providers>
         {process.env.NODE_ENV === "development" && <Agentation />}
-        <Script id="sw-registration" strategy="afterInteractive">
-          {`
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').catch(function(err) {
-                  console.error('Service Worker registration failed: ', err);
-                });
-              });
-            }
-          `}
-        </Script>
+        <ServiceWorkerRegistry />
       </body>
     </html>
   );

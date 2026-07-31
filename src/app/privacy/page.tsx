@@ -37,7 +37,7 @@ export default function PrivacyPage() {
                 <li><a href="#cookies" className="font-semibold text-primary/80 hover:text-primary transition-colors">5. Cookies & Session Usage</a></li>
                 <li><a href="#security" className="font-semibold text-primary/80 hover:text-primary transition-colors">6. Data Security</a></li>
                 <li><a href="#data-ownership" className="font-semibold text-primary/80 hover:text-primary transition-colors">7. Data Ownership & Retention</a></li>
-                <li><a href="#children" className="font-semibold text-primary/80 hover:text-primary transition-colors">8. Children's Privacy</a></li>
+                <li><a href="#children" className="font-semibold text-primary/80 hover:text-primary transition-colors">8. Children&apos;s Privacy</a></li>
                 <li><a href="#contact" className="font-semibold text-primary/80 hover:text-primary transition-colors">9. Contact Us</a></li>
               </ul>
             </nav>
@@ -122,7 +122,7 @@ export default function PrivacyPage() {
             </section>
 
             <section id="children" className="scroll-mt-24">
-              <h3 className="text-xl font-bold text-foreground mb-4 pb-2 border-b border-border/30">8. Children's Privacy</h3>
+              <h3 className="text-xl font-bold text-foreground mb-4 pb-2 border-b border-border/30">8. Children&apos;s Privacy</h3>
               <div className="space-y-4 text-[15px] leading-relaxed text-muted-foreground">
                 <p>
                   RewardLoop is a B2B platform intended strictly for business users. The service is not directed toward children under the age of 18, and we do not knowingly collect personal data from minors.

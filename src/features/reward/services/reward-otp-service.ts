@@ -12,8 +12,6 @@ import type { VisitContext } from "@/features/checkout/services/visit-context-se
 const log = createLogger("reward-otp");
 const OTP_TTL_SECONDS = 3 * 60;
 const OTP_COOLDOWN_SECONDS = 30;
-const OTP_MAX_REQUESTS = 5;
-const OTP_WINDOW_MINUTES = 15;
 const OTP_MAX_ATTEMPTS = 3;
 
 interface RewardOtpRow {

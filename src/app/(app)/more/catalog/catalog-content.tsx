@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ScreenContainer } from "@/components/screen-container";
 import { PageHeader } from "@/components/page-header";
 import { Section } from "@/components/section";
-import { EmptyState } from "@/components/feedback/empty-state";
+import { EmptyState } from "@/components/ui/feedback-states";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -163,7 +163,7 @@ export function CatalogManagementContent({
         <TabsContent value="service" className="space-y-4">
           {services.length === 0 ? (
             <EmptyState
-              icon={<Scissors className="size-8 text-primary" />}
+              icon={Scissors}
               title="No Services"
               description="Add your services to get started."
               action={
@@ -217,7 +217,7 @@ export function CatalogManagementContent({
         <TabsContent value="product" className="space-y-4">
           {products.length === 0 ? (
             <EmptyState
-              icon={<Package className="size-8 text-primary" />}
+              icon={Package}
               title="No Products"
               description="Add your products to get started."
               action={

@@ -37,10 +37,13 @@ export async function searchCustomer(
       throw new AppError("Authentication required", "AUTH_REQUIRED");
     }
 
-    const customer = await findCustomerByPhone(
-      supabase,
-      parsed.data.phone,
-      businessId,
+    const cacheKey = `business:${businessId}:customer:${parsed.data.phone}`;
+    
+    const { serverCache } = await import("@/lib/server-cache");
+    const customer = await serverCache.fetch(
+      cacheKey,
+      () => findCustomerByPhone(supabase, parsed.data.phone, businessId),
+      { ttlSeconds: 3600 }
     );
 
     return actionSuccess(customer);

@@ -2,14 +2,15 @@
  * RewardLoop — Verify OTP Server Action.
  *
  * Verifies 6-digit OTP code with Supabase Auth, updates `users.session_version` in DB,
- * sets the signed device cookie (`rl_sv`), evaluates business status, and returns routing metadata.
+ * registers device session in `user_sessions`, sets the signed device cookie (`rl_sv`),
+ * evaluates business status, and returns routing metadata.
  *
  * @module features/auth/actions/verify-otp
  */
 
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { otpSchema } from "../schemas/otp-schema";
 import type {
   VerifyOTPInput,
@@ -20,6 +21,7 @@ import type {
 import {
   SESSION_VERSION_COOKIE,
   signSessionVersion,
+  hashSessionToken,
 } from "../utils/session-cookie";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -27,9 +29,9 @@ import { normalizePhone } from "@/utils/formatters/phone";
 import { actionSuccess, actionError } from "@/lib/api";
 import { handleActionError } from "@/lib/errors";
 import { createLogger } from "@/lib/logger";
+import { ROUTES } from "@/constants";
 
 const log = createLogger("verify-otp");
-import { ROUTES } from "@/constants";
 
 export async function verifyOTP(
   input: VerifyOTPInput,
@@ -76,16 +78,27 @@ export async function verifyOTP(
       );
     }
 
+    const headerStore = await headers();
+    const userAgent = headerStore.get("user-agent") ?? "Unknown Device";
+    const rawIp = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "127.0.0.1";
+
     const authUserId = authData.user.id;
     const adminSupabase = createAdminClient();
 
     try {
-      // 2. Execute idempotent, atomic verify RPC
+      // 2. Generate signed cookie value & token hash before RPC call
+      const tempCookieValue = await signSessionVersion(Date.now());
+      const sessionTokenHash = await hashSessionToken(tempCookieValue);
+
+      // 3. Execute idempotent, atomic verify RPC with session registration
       const { data: rpcData, error: rpcError } = await adminSupabase.rpc(
         "verify_user_session",
         {
           p_auth_user_id: authUserId,
           p_phone: e164Phone,
+          p_session_token_hash: sessionTokenHash,
+          p_device_info: userAgent,
+          p_ip_address: rawIp,
         },
       );
 
@@ -111,7 +124,7 @@ export async function verifyOTP(
         role,
       } = rpcData.data;
 
-      // 3. Evaluate Business status and calculate redirect route
+      // 4. Evaluate Business status and calculate redirect route
       let authBusiness: AuthBusiness | null = null;
       let redirectTo: string = ROUTES.ONBOARDING_BUSINESS;
 
@@ -143,8 +156,8 @@ export async function verifyOTP(
         redirectTo = ROUTES.ONBOARDING_BUSINESS;
       }
 
-      // 4. Write HMAC-signed rl_sv cookie for device session versioning
-      const signedCookieValue = await signSessionVersion(newSessionVersion);
+      // 5. Write HMAC-signed rl_sv cookie for device session versioning
+      const signedCookieValue = tempCookieValue;
       const cookieStore = await cookies();
       cookieStore.set(
         SESSION_VERSION_COOKIE.name,

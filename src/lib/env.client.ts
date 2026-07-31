@@ -22,6 +22,15 @@ const clientEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z
     .string()
     .min(1, "NEXT_PUBLIC_SUPABASE_ANON_KEY is required"),
+  NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: z
+    .string()
+    .min(1, "NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN is required")
+    .optional(),
+  NEXT_PUBLIC_POSTHOG_HOST: z
+    .string()
+    .url("NEXT_PUBLIC_POSTHOG_HOST must be a valid URL")
+    .default("https://us.i.posthog.com")
+    .optional(),
 });
 
 export type ClientEnv = z.infer<typeof clientEnvSchema>;
@@ -40,6 +49,8 @@ export function getClientEnv(): ClientEnv {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN,
+    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   });
 
   return _clientEnv;

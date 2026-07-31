@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/page-header";
 import { Section } from "@/components/section";
 import { getSettings } from "@/features/settings/actions";
 import { ProfileForm } from "./profile-form";
-import { ErrorState } from "@/components/feedback/error-state";
+import { ErrorState } from "@/components/ui/feedback-states";
 
 export default async function ProfilePage() {
   const result = await getSettings();

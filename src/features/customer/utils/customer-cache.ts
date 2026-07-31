@@ -1,18 +1,34 @@
 import type { Customer } from "../types";
-import { CacheManager } from "@/utils/cache-manager";
+import { ClientCacheManager } from "@/utils/client-cache";
 
-export const customerCache = new CacheManager<string, Customer | "not_found">(
-  "customer_cache",
-  {
-    maxSize: 1000,
-    ttlMs: 30 * 60 * 1000, // 30 mins
-  },
-);
+class CustomerCacheManager extends ClientCacheManager<string, Customer | "not_found"> {
+  private prefetchCompleted = false;
 
-export let hasPrefetchedAll = false;
+  public get hasPrefetchedAll(): boolean {
+    return this.prefetchCompleted;
+  }
 
-export function setHasPrefetchedAll(value: boolean) {
-  hasPrefetchedAll = value;
+  public setHasPrefetchedAll(value: boolean): void {
+    this.prefetchCompleted = value;
+  }
+
+  public override clear(): void {
+    super.clear();
+    this.prefetchCompleted = false;
+  }
+}
+
+export const customerCache = new CustomerCacheManager("customer_cache", {
+  maxSize: 1000,
+  ttlMs: 30 * 60 * 1000, // 30 mins
+});
+
+export function getHasPrefetchedAll(): boolean {
+  return customerCache.hasPrefetchedAll;
+}
+
+export function setHasPrefetchedAll(value: boolean): void {
+  customerCache.setHasPrefetchedAll(value);
 }
 
 export function cacheCustomerList(customers: Customer[]) {
@@ -20,3 +36,4 @@ export function cacheCustomerList(customers: Customer[]) {
     customerCache.set(c.phone, c);
   });
 }
+

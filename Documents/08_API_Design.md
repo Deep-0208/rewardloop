@@ -561,49 +561,51 @@ interface CompleteVisitInput {
   customerId: string;
   items: {
     catalogItemId: string;
-    itemName: string;
     quantity: number;
-    unitPrice: number; // Paise
-    totalPrice: number; // Paise
   }[];
-  rewardApplied: number; // Paise (0 if no redemption)
+  rewardAppliedPaise: number; // Paise (0 if no redemption)
   paymentMethod: "cash" | "online" | "none";
-  otpVerifiedToken: string | null; // Required if rewardApplied > 0
+  otpVerifiedToken: string | null; // Required if rewardAppliedPaise > 0
 }
 ```
 
 ### Zod Schema
 
 ```typescript
+const rewardCartItemSchema = z.object({
+  catalogItemId: z.string().uuid(),
+  quantity: z.number().int().min(1).max(99),
+});
+
 const CompleteVisitSchema = z
   .object({
     idempotencyKey: z.string().uuid(),
     customerId: z.string().uuid(),
     items: z
-      .array(
-        z.object({
-          catalogItemId: z.string().uuid(),
-          itemName: z.string().min(1).max(100),
-          quantity: z.number().int().min(1),
-          unitPrice: z.number().int().min(0),
-          totalPrice: z.number().int().min(0),
-        }),
-      )
-      .min(1, "At least one item required."),
-    rewardApplied: z.number().int().min(0),
+      .array(rewardCartItemSchema)
+      .min(1, "At least one item is required."),
+    rewardAppliedPaise: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
     paymentMethod: z.enum(["cash", "online", "none"]),
-    otpVerifiedToken: z.string().nullable(),
+    otpVerifiedToken: z.string().uuid().nullable(),
   })
-  .refine(
-    (data) => data.rewardApplied === 0 || data.otpVerifiedToken !== null,
-    {
-      message: "OTP token required when reward is applied.",
-      path: ["otpVerifiedToken"],
-    },
-  )
-  .refine((data) => data.paymentMethod === "none" || data.items.length > 0, {
-    message: "Payment method required.",
-    path: ["paymentMethod"],
+  .superRefine((value, context) => {
+    if (
+      new Set(value.items.map((item) => item.catalogItemId)).size !==
+      value.items.length
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "Each catalog item can appear only once.",
+        path: ["items"],
+      });
+    }
+    if (value.rewardAppliedPaise > 0 && !value.otpVerifiedToken) {
+      context.addIssue({
+        code: "custom",
+        message: "Reward redemption requires OTP verification.",
+        path: ["otpVerifiedToken"],
+      });
+    }
   });
 ```
 

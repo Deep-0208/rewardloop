@@ -66,6 +66,7 @@ export function isAppError(error: unknown): error is AppError {
  */
 export function handleActionError(error: unknown): ActionResult<never> {
   if (isAppError(error)) {
+    log.warn(`[handleActionError] AppError [${error.code}] (${error.statusCode}): ${error.message}`);
     return { success: false, error: error.message, code: error.code };
   }
 

@@ -4,30 +4,12 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { formatCurrency } from "@/utils";
 import type { RecentTransaction } from "../types";
-import { EmptyState } from "@/components/feedback";
+import { EmptyState } from "@/components/ui/feedback-states";
+import { CustomerAvatar } from "@/components/ui/avatar";
 
 interface RecentTransactionsListProps {
   transactions: RecentTransaction[];
 }
-
-function getInitials(name?: string | null) {
-  if (!name) return "??";
-  const trimmed = name.trim();
-  if (!trimmed) return "??";
-  const parts = trimmed.split(" ");
-  if (parts.length >= 2 && parts[0] && parts[1]) {
-    return ((parts[0]?.[0] || "") + (parts[1]?.[0] || "")).toUpperCase();
-  }
-  return trimmed.substring(0, 2).toUpperCase();
-}
-
-const AVATAR_COLORS = [
-  "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
-  "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400",
-];
 
 export function RecentTransactionsList({
   transactions,
@@ -73,25 +55,24 @@ export function RecentTransactionsList({
       </div>
 
       <div className="flex flex-col gap-[var(--spacing-s)]">
-        {recentSlice.map((txn, index) => {
-          const initials = getInitials(txn.customerName);
-          const colorClass = AVATAR_COLORS[index % AVATAR_COLORS.length];
+        {recentSlice.map((txn) => {
+          const customerDisplayName = txn.customerName || "Walk-in Customer";
           const hasReward = txn.rewardUsedPaise > 0;
 
           return (
             <div
               key={txn.id}
-              className="bg-card rounded-[var(--radius-card)] p-[var(--spacing-sm)] shadow-[var(--shadow-soft)] flex items-center justify-between"
+              className="bg-card rounded-[var(--radius-card)] p-[var(--spacing-sm)] shadow-[var(--shadow-soft)] flex items-center justify-between transition-all hover:shadow-md hover:border-border/60 border border-border/20"
             >
               <div className="flex items-center gap-[var(--spacing-s)]">
-                <div
-                  className={`w-[44px] h-[44px] rounded-full flex items-center justify-center text-[15px] font-bold shrink-0 ${colorClass}`}
-                >
-                  {initials}
-                </div>
+                <CustomerAvatar
+                  name={txn.customerName}
+                  seed={txn.customerName || txn.id}
+                  size="lg"
+                />
                 <div className="flex flex-col">
                   <span className="font-semibold text-[15px] text-[var(--color-text-primary)] leading-tight">
-                    {txn.customerName || "Walk-in Customer"}
+                    {customerDisplayName}
                   </span>
                   <div className="flex items-center gap-[4px] mt-[2px]">
                     <span className="text-[12px] text-[var(--color-text-secondary)]">
@@ -130,3 +111,4 @@ export function RecentTransactionsList({
     </section>
   );
 }
+

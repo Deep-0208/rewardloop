@@ -132,6 +132,7 @@ export function BusinessForm() {
             >
               <div className="flex flex-col items-center gap-1.5">
                 <div
+                  aria-current={isActive ? "step" : undefined}
                   className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium transition-all duration-200 ${
                     isActive
                       ? "bg-primary text-primary-foreground ring-[3px] ring-primary/20 shadow-[var(--shadow-hero)]"

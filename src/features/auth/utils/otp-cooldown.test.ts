@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
 import { isOtpRateLimited, setOtpCooldownCookie } from "./otp-cooldown";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -20,8 +19,8 @@ vi.mock("@/lib/env.server", () => ({
 
 describe("otp-cooldown", () => {
   const MOCK_SECRET = "test-secret-key-123";
-  let mockCookieStore: any;
-  let mockRpc: any;
+  let mockCookieStore: { get: Mock; set: Mock };
+  let mockRpc: Mock;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -31,14 +30,14 @@ describe("otp-cooldown", () => {
       get: vi.fn(),
       set: vi.fn(),
     };
-    (cookies as any).mockResolvedValue(mockCookieStore);
+    (cookies as unknown as Mock).mockResolvedValue(mockCookieStore);
 
     mockRpc = vi.fn().mockResolvedValue({ data: true, error: null });
-    (createAdminClient as any).mockReturnValue({
+    (createAdminClient as unknown as Mock).mockReturnValue({
       rpc: mockRpc,
     });
 
-    (getServerEnv as any).mockReturnValue({
+    (getServerEnv as unknown as Mock).mockReturnValue({
       REWARDLOOP_SESSION_SECRET: MOCK_SECRET,
     });
   });

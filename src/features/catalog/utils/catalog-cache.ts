@@ -1,8 +1,8 @@
 import { getCatalogItems } from "../actions/get-catalog-items";
-import { CacheManager } from "@/utils/cache-manager";
+import { ClientCacheManager } from "@/utils/client-cache";
 import type { GetCatalogItemsResponse } from "../types";
 
-export const catalogCache = new CacheManager<
+export const catalogCache = new ClientCacheManager<
   "catalog",
   GetCatalogItemsResponse
 >("catalog_cache", {

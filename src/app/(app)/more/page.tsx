@@ -4,7 +4,7 @@ import { Section } from "@/components/section";
 import { getSettings } from "@/features/settings/actions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ErrorState } from "@/components/feedback/error-state";
+import { ErrorState } from "@/components/ui/feedback-states";
 import {
   Store,
   Scissors,

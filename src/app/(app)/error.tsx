@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import posthog from "posthog-js";
-import { ErrorState } from "@/components/feedback/error-state";
+import { ErrorState } from "@/components/ui/feedback-states";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("app-error-boundary");
@@ -28,7 +28,7 @@ export default function AppErrorBoundary({
       <ErrorState
         title="Unable to load page"
         description="We ran into an unexpected issue while loading this page. Please try again."
-        onRetry={() => reset()}
+        retry={() => reset()}
       />
     </div>
   );

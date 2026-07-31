@@ -14,6 +14,8 @@ import type {
   CompleteVisitResult,
 } from "../types";
 
+import { checkoutRateLimit } from "@/lib/rate-limit";
+
 const log = createLogger("complete-visit");
 
 interface CompleteVisitRpcRow {
@@ -33,14 +35,25 @@ export async function completeVisit(
   try {
     const parsed = completeVisitSchema.safeParse(input);
     if (!parsed.success) {
+      const messages = parsed.error.issues.map((i) => i.message).join(" ");
       throw new AppError(
-        parsed.error.issues[0]?.message ?? "Invalid visit completion request.",
+        messages || "Invalid visit completion request.",
         "VALIDATION_FAILED",
       );
     }
 
     const supabase = await createClient();
     const context = await resolveVisitContext(supabase, parsed.data.customerId);
+
+    const rateLimitResult = await checkoutRateLimit.limit(
+      `checkout_${context.businessId}`,
+    );
+    if (!rateLimitResult.success) {
+      throw new AppError(
+        "Too many checkout attempts. Please wait a moment before trying again.",
+        "RATE_LIMITED",
+      );
+    }
     const summary = await generateServerCheckoutSummary(supabase, {
       customerId: parsed.data.customerId,
       items: parsed.data.items,
@@ -97,34 +110,39 @@ export async function completeVisit(
       duplicate: row.duplicate,
     };
     if (!result.duplicate) {
-      try {
-        const { error: notificationError } = await supabase.functions.invoke(
-          "send-transaction-sms",
-          {
-            body: {
-              customerId: parsed.data.customerId,
-              transactionId: result.transactionId,
-              finalPaidPaise: result.finalPaidPaise,
-              rewardEarnedPaise: result.rewardEarnedPaise,
-              rewardUsedPaise: result.rewardUsedPaise,
+      // Async fire-and-forget for SMS notification to prevent blocking POS checkout response
+      void (async () => {
+        try {
+          const { error: notificationError } = await supabase.functions.invoke(
+            "send-transaction-sms",
+            {
+              body: {
+                customerId: parsed.data.customerId,
+                transactionId: result.transactionId,
+                finalPaidPaise: result.finalPaidPaise,
+                rewardEarnedPaise: result.rewardEarnedPaise,
+                rewardUsedPaise: result.rewardUsedPaise,
+              },
             },
-          },
-        );
-        if (notificationError) {
-          log.error("Transaction SMS notification failed", {
+          );
+          if (notificationError) {
+            log.error("Transaction SMS notification failed", {
+              transactionId: result.transactionId,
+              message: notificationError.message,
+            });
+          }
+        } catch (smsError) {
+          log.error("Transaction SMS service unreachable", {
             transactionId: result.transactionId,
-            message: notificationError.message,
+            error:
+              smsError instanceof Error ? smsError.message : "Unknown error",
           });
         }
-      } catch (smsError) {
-        log.error("Transaction SMS service unreachable", {
-          transactionId: result.transactionId,
-          error: smsError instanceof Error ? smsError.message : "Unknown error",
-        });
-      }
+      })();
     }
     return actionSuccess(result);
   } catch (error) {
     return handleActionError(error);
   }
 }
+

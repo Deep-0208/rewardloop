@@ -22,10 +22,6 @@ export const phoneSchema = z.object({
       `Phone number must be exactly ${LIMITS.PHONE_LENGTH} digits`,
     )
     .regex(REGEX.PHONE, "Enter a valid 10-digit Indian mobile number"),
-  termsAccepted: z.boolean().refine((val) => val === true, {
-    message:
-      "You must accept the Terms of Service and Privacy Policy to continue.",
-  }),
 });
 
 export type PhoneSchemaInput = z.infer<typeof phoneSchema>;

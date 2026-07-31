@@ -131,7 +131,7 @@ export function VisitSuccessScreen({
       </Card>
 
       {/* Done CTA */}
-      <Button size="full" className="max-w-sm" onClick={handleDone}>
+      <Button size="lg" className="w-full max-w-sm" onClick={handleDone}>
         Done
       </Button>
 

@@ -1,7 +1,7 @@
 import { ScreenContainer } from "@/components/screen-container";
 import { PageHeader } from "@/components/page-header";
 import { Section } from "@/components/section";
-import { EmptyState } from "@/components/feedback/empty-state";
+import { EmptyState } from "@/components/ui/feedback-states";
 import { TransactionCard } from "@/features/shared/components";
 import { getTransactions } from "@/features/transactions/actions/get-transactions";
 import { formatCurrency, formatDate } from "@/utils";
@@ -45,12 +45,12 @@ export default async function TransactionsPage() {
 
       {transactions.length === 0 ? (
         <EmptyState
-          icon={<Receipt className="size-8 text-primary" />}
+          icon={Receipt}
           title="No Sales History Yet"
           description="Completed sales, reward earnings, and redemptions will appear here."
           action={
             <Link href="/visit">
-              <Button size="touch">
+              <Button size="lg">
                 <PlusCircle className="mr-2 size-5" />
                 New Visit Transaction
               </Button>

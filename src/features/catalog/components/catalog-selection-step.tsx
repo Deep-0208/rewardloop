@@ -10,7 +10,6 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { Button } from "@/components/ui/button";
@@ -63,7 +62,6 @@ export function CatalogSelectionStep() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"service" | "product">("service");
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [, startTransition] = useTransition();
 
   /* ─── Store ────────────────────────────────────────────────────────────── */

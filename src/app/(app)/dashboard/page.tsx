@@ -1,7 +1,7 @@
 import { getDashboardData } from "@/features/dashboard/actions/get-dashboard-data";
 import { DashboardContent } from "./dashboard-content";
 import { PageHeader } from "@/components/page-header";
-import { ErrorState } from "@/components/feedback/error-state";
+import { ErrorState } from "@/components/ui/feedback-states";
 
 function getGreeting(): string {
   // Try to get greeting based on IST (or default to something reasonable if no tz available)

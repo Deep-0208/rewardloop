@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, Phone } from "@/components/icons";
+import { Phone } from "@/components/icons";
+import { CustomerAvatar } from "@/components/ui/avatar";
 
 interface CustomerCardProps {
   /** Customer name (can be null for unnamed customers) */
@@ -28,11 +29,10 @@ export function CustomerCard({
   className,
 }: CustomerCardProps) {
   return (
-    <Card className={cn("border border-border", className)}>
+    <Card className={cn("border border-border/40 shadow-xs", className)}>
       <CardContent className="flex items-center gap-3 p-4">
-        <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <User className="size-5" />
-        </div>
+        <CustomerAvatar name={name} seed={name || phone} size="md" />
+
 
         <div className="flex flex-1 flex-col gap-0.5">
           <span className="text-sm font-medium text-foreground">

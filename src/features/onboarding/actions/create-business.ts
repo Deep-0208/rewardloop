@@ -3,7 +3,6 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 
 import { createBusinessSchema, type CreateBusinessInput } from "../schemas";
@@ -52,10 +51,8 @@ export async function createBusiness(
       products = [],
     } = validatedFields.data;
 
-    // 3. Use Admin client to call atomic RPC
-    const adminSupabase = createAdminClient();
-
-    const { data: rpcData, error: rpcError } = await adminSupabase.rpc(
+    // 3. Use authenticated user client to call atomic RPC with correct auth context
+    const { data: rpcData, error: rpcError } = await supabase.rpc(
       "create_business_flow",
       {
         p_auth_user_id: user.id,
@@ -93,7 +90,8 @@ export async function createBusiness(
       businessId: rpcData.business_id,
     });
 
-    revalidatePath("/", "layout");
+    revalidatePath("/dashboard");
+    revalidatePath("/onboarding");
 
     return {
       success: true,

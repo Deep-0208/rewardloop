@@ -154,10 +154,10 @@ export default function VerifyForm({ phone }: { phone: string }) {
 
                 <Button
                   type="submit"
-                  size="full"
+                  size="lg"
                   disabled={isFormDisabled}
                   loading={isPending}
-                  className="shadow-[var(--shadow-hero)]"
+                  className="w-full h-[52px] rounded-[14px] text-[16px] font-bold shadow-[var(--shadow-hero)] transition-all duration-300 active:scale-[0.98]"
                 >
                   Verify & Continue
                 </Button>

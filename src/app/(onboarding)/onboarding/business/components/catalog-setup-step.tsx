@@ -1,7 +1,7 @@
 import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { CreateBusinessInput } from "@/features/onboarding/schemas";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 
@@ -63,7 +63,11 @@ export function CatalogSetupStep({ form }: CatalogSetupStepProps) {
               render={({ field }) => (
                 <FormItem className="flex-1 space-y-0">
                   <FormControl>
-                    <Input {...field} placeholder="Service Name" />
+                    <Input 
+                      {...field} 
+                      placeholder="Service Name" 
+                      rightSection={<Pencil className="h-3.5 w-3.5" />} 
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -140,7 +144,11 @@ export function CatalogSetupStep({ form }: CatalogSetupStepProps) {
               render={({ field }) => (
                 <FormItem className="flex-1 space-y-0">
                   <FormControl>
-                    <Input {...field} placeholder="Product Name" />
+                    <Input 
+                      {...field} 
+                      placeholder="Product Name" 
+                      rightSection={<Pencil className="h-3.5 w-3.5" />} 
+                    />
                   </FormControl>
                 </FormItem>
               )}

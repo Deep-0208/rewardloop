@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/app-shell";
-import { EmptyState } from "@/components/empty-state";
+import { EmptyState } from "@/components/ui/feedback-states";
 import { FileQuestion } from "@/components/icons";
 import Link from "next/link";
 import { ROUTES } from "@/constants/routes";
@@ -13,7 +13,7 @@ export default function NotFound() {
   return (
     <AppShell>
       <EmptyState
-        icon={<FileQuestion className="size-8 text-muted-foreground" />}
+        icon={FileQuestion}
         title="Page not found"
         description="The page you're looking for doesn't exist or has been moved."
         action={

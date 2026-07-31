@@ -29,17 +29,27 @@ export async function prefetchCustomers(): Promise<ActionResult<Customer[]>> {
       throw new AppError("Authentication required", "AUTH_REQUIRED");
     }
 
-    const { data, error } = await supabase
-      .from("customers")
-      .select("id, business_id, phone, name, total_visits")
-      .eq("business_id", businessId)
-      .limit(5000);
+    const cacheKey = `business:${businessId}:customers_all`;
+    const { serverCache } = await import("@/lib/server-cache");
 
-    if (error) {
-      throw new AppError("Failed to fetch customers", "SERVER_ERROR");
-    }
+    const customers = await serverCache.fetch(
+      cacheKey,
+      async () => {
+        const { data, error } = await supabase
+          .from("customers")
+          .select("id, business_id, phone, name, total_visits")
+          .eq("business_id", businessId)
+          .limit(5000);
 
-    return actionSuccess(data as Customer[]);
+        if (error) {
+          throw new AppError("Failed to fetch customers", "SERVER_ERROR");
+        }
+        return data as Customer[];
+      },
+      { ttlSeconds: 3600 }
+    );
+
+    return actionSuccess(customers);
   } catch (error) {
     return handleActionError(error);
   }

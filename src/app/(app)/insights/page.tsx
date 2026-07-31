@@ -2,8 +2,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { PageHeader } from "@/components/page-header";
 import { Section } from "@/components/section";
 import { StatCard } from "@/features/shared/components";
-import { EmptyState } from "@/components/feedback/empty-state";
-import { ErrorState } from "@/components/feedback/error-state";
+import { EmptyState, ErrorState } from "@/components/ui/feedback-states";
 import { getInsights } from "@/features/insights/actions/get-insights";
 import { formatCurrency } from "@/utils";
 import {
@@ -122,8 +121,8 @@ export default async function InsightsPage() {
       <Section title="Top Items" description="Most popular by quantity sold">
         {topServices.length === 0 ? (
           <EmptyState
-            compact
-            icon={<Scissors className="size-6 text-primary" />}
+            variant="inline"
+            icon={Scissors}
             title="No Services Yet"
             description="Service rankings appear after completing transactions."
           />
@@ -161,8 +160,8 @@ export default async function InsightsPage() {
       <Section title="Top Customers" description="Most frequent visitors">
         {topCustomers.length === 0 ? (
           <EmptyState
-            compact
-            icon={<Users className="size-6 text-primary" />}
+            variant="inline"
+            icon={Users}
             title="No Customers Yet"
             description="Customer rankings appear after recording visits."
           />

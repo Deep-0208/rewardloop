@@ -2,8 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
 /* ─── RewardLoop Design Tokens (Tailwind v4 CSS-first) ────────────────────── */
 
 @theme inline {
@@ -166,60 +164,6 @@
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-left: env(safe-area-inset-left, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
-}
-
-/* ─── Dark Mode (architecture ready, not active in MVP) ───────────────────── */
-
-.dark {
-  --primary: oklch(0.637 0.186 275.75);
-  --primary-foreground: oklch(0.145 0.005 286.07);
-  --background: oklch(0.145 0.005 286.07);
-  --foreground: oklch(0.985 0.002 247.84);
-  --card: oklch(0.205 0.006 286.07);
-  --card-foreground: oklch(0.985 0.002 247.84);
-  --popover: oklch(0.205 0.006 286.07);
-  --popover-foreground: oklch(0.985 0.002 247.84);
-  --secondary: oklch(0.269 0.006 286.07);
-  --secondary-foreground: oklch(0.985 0.002 247.84);
-  --muted: oklch(0.269 0.006 286.07);
-  --muted-foreground: oklch(0.708 0.01 286.07);
-  --accent: oklch(0.269 0.006 286.07);
-  --accent-foreground: oklch(0.985 0.002 247.84);
-  --destructive: oklch(0.704 0.191 22.22);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.637 0.186 275.75);
-
-  --chart-1: oklch(0.637 0.186 275.75);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.704 0.191 22.22);
-  --chart-5: oklch(0.708 0.01 286.07);
-
-  --sidebar: oklch(0.205 0.006 286.07);
-  --sidebar-foreground: oklch(0.985 0.002 247.84);
-  --sidebar-primary: oklch(0.637 0.186 275.75);
-  --sidebar-primary-foreground: oklch(0.985 0.002 247.84);
-  --sidebar-accent: oklch(0.269 0.006 286.07);
-  --sidebar-accent-foreground: oklch(0.985 0.002 247.84);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.637 0.186 275.75);
-
-  --color-success: oklch(0.696 0.17 162.48);
-  --color-success-light: oklch(0.2 0.05 162.48);
-  --color-warning: oklch(0.769 0.188 70.08);
-  --color-error: oklch(0.704 0.191 22.22);
-  --color-info: oklch(0.637 0.186 275.75);
-  --color-primary-dark: oklch(0.496 0.186 275.75);
-  --color-primary-light: oklch(0.2 0.04 275.75);
-  --color-surface: oklch(0.269 0.006 286.07);
-  --color-text-primary: oklch(0.985 0.002 247.84);
-  --color-text-secondary: oklch(0.708 0.01 286.07);
-  --color-text-tertiary: oklch(0.5 0.01 286.07);
-
-  --shadow-sm: 0px 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-card: 0px 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-float: 0px 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
 /* ─── Base Styles ─────────────────────────────────────────────────────────── */

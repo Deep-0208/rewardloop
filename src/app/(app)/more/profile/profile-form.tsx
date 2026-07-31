@@ -112,10 +112,10 @@ export function ProfileForm({ initialName, businessType }: ProfileFormProps) {
             <div className="pt-4">
               <Button
                 type="submit"
-                size="full"
+                size="lg"
                 disabled={isPending || !form.formState.isDirty}
                 loading={isPending}
-                className="shadow-[0_4px_16px_rgba(79,70,229,0.3)] transition-all duration-300 active:scale-[0.98]"
+                className="w-full shadow-[var(--shadow-hero)] transition-all duration-300 active:scale-[0.98]"
               >
                 {!isPending && <Save className="mr-2 size-5" />}
                 Save Changes

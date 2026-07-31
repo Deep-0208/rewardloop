@@ -38,8 +38,14 @@ export async function validateSession(): Promise<ValidateSessionResponse> {
           "ACCOUNT_SUSPENDED",
         );
       }
+      if (validation.reason === "SESSION_EXPIRED") {
+        return actionError(
+          "Your session has expired. Please log in again.",
+          "SESSION_EXPIRED",
+        );
+      }
       return actionError(
-        "You've been logged in on another device. Please log in again.",
+        "Your session is no longer active. Please log in again.",
         "SESSION_REVOKED",
       );
     }

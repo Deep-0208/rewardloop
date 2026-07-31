@@ -46,7 +46,7 @@ export default function TermsPage() {
               <h3 className="text-xl font-bold text-foreground mb-4 pb-2 border-b border-border/30">1. Agreement to Terms</h3>
               <div className="space-y-4 text-[15px] leading-relaxed text-muted-foreground">
                 <p>
-                  These Terms of Service constitute a legally binding agreement made between you ("Business Owner", "you") and RewardLoop ("we", "us", or "our"), concerning your access to and use of the RewardLoop Progressive Web App (PWA) and related services. By registering for or using RewardLoop, you agree that you have read, understood, and agreed to be bound by all of these Terms of Service.
+                  These Terms of Service constitute a legally binding agreement made between you (&quot;Business Owner&quot;, &quot;you&quot;) and RewardLoop (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), concerning your access to and use of the RewardLoop Progressive Web App (PWA) and related services. By registering for or using RewardLoop, you agree that you have read, understood, and agreed to be bound by all of these Terms of Service.
                 </p>
               </div>
             </section>
@@ -109,7 +109,7 @@ export default function TermsPage() {
                 <ul className="list-disc pl-5 space-y-2 marker:text-primary/50">
                   <li>Provide accurate and current information about your business.</li>
                   <li>Protect your OTP access and mobile device.</li>
-                  <li>Not misuse, sell, or improperly expose your customers' data.</li>
+                  <li>Not misuse, sell, or improperly expose your customers&apos; data.</li>
                   <li>Not create fake transactions or abuse the reward system to artificially inflate metrics.</li>
                 </ul>
               </div>

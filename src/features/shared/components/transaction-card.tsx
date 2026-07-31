@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { CreditCard, Wallet } from "@/components/icons";
+import { CustomerAvatar } from "@/components/ui/avatar";
 
 interface TransactionCardProps {
   /** Customer name or phone */
@@ -48,12 +49,10 @@ export function TransactionCard({
   const { label: methodLabel, icon: MethodIcon } =
     paymentMethodConfig[paymentMethod];
 
-  const initial = customerName.charAt(0).toUpperCase();
-
   return (
     <Card
       className={cn(
-        "transition-all duration-150",
+        "transition-all duration-150 border border-border/40 shadow-xs",
         onClick &&
           "cursor-pointer hover:shadow-[var(--shadow-soft)] active:scale-[0.98]",
         className,
@@ -73,10 +72,9 @@ export function TransactionCard({
       }
     >
       <CardContent className="flex items-center gap-3 p-4">
-        {/* Avatar initial */}
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-          {initial}
-        </div>
+        {/* Customer Avatar */}
+        <CustomerAvatar name={customerName} size="md" />
+
 
         <div className="flex flex-1 flex-col gap-1">
           <span className="text-sm font-semibold text-foreground truncate leading-tight">

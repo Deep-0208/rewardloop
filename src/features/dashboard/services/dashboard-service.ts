@@ -182,27 +182,44 @@ async function fetchAggregates(
   };
 }
 
+import { serverCache } from "@/lib/server-cache";
+
 /**
  * Fetch all dashboard data in a single coordinated call.
  *
  * @param supabase - Authenticated Supabase server client
+ * @param businessId - Optional business tenant ID for Redis server caching
  * @returns Complete DashboardData payload
  * @throws On database errors
  */
 export async function getDashboard(
   supabase: SupabaseClient,
+  businessId?: string,
 ): Promise<DashboardData> {
-  const [kpis, recentTransactions, aggregates] = await Promise.all([
-    fetchTodayKpis(supabase),
-    fetchRecentTransactions(supabase),
-    fetchAggregates(supabase),
-  ]);
+  const fetchFn = async (): Promise<DashboardData> => {
+    const [kpis, recentTransactions, aggregates] = await Promise.all([
+      fetchTodayKpis(supabase),
+      fetchRecentTransactions(supabase),
+      fetchAggregates(supabase),
+    ]);
 
-  return {
-    kpis,
-    recentTransactions,
-    totalCustomers: aggregates.totalCustomers,
-    lifetimeRevenuePaise: aggregates.lifetimeRevenuePaise,
-    businessName: aggregates.businessName,
+    return {
+      kpis,
+      recentTransactions,
+      totalCustomers: aggregates.totalCustomers,
+      lifetimeRevenuePaise: aggregates.lifetimeRevenuePaise,
+      businessName: aggregates.businessName,
+    };
   };
+
+  if (businessId) {
+    return serverCache.fetch<DashboardData>(
+      "dashboard_data",
+      fetchFn,
+      { ttlSeconds: 60, businessId },
+    );
+  }
+
+  return fetchFn();
 }
+

@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.local
+.env.production
+README.md
+docs
+Documents
+tests
+coverage
+*.tsbuildinfo
+graphify-out
+C:\Users\DELL\.gemini

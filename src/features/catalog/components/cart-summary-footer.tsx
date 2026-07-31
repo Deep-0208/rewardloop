@@ -33,7 +33,7 @@ export function CartSummaryFooter({
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-[60] bg-background/80 backdrop-blur-xl border-t border-border/40 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-[0_-8px_32px_rgba(0,0,0,0.04)] ${className}`}
+      className={`fixed bottom-0 left-0 right-0 z-[60] bg-background/80 backdrop-blur-xl border-t border-border/40 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-[var(--shadow-float)] ${className}`}
     >
       <div className="max-w-[768px] mx-auto w-full flex flex-col gap-4">
         {/* Cart Info */}
@@ -46,7 +46,7 @@ export function CartSummaryFooter({
             <div className="flex items-center text-[12px] font-bold tracking-wider uppercase text-muted-foreground mb-1">
               {isEmpty
                 ? "No items selected"
-                : `${totalItems} ${totalItems === 1 ? "Item" : "Items"} Selected`}
+                : `${totalItems} ${totalItems === 1 ? "Item" : "Items"} (${totalQuantity} total)`}
             </div>
             <div className="text-[22px] font-bold tracking-tight text-foreground leading-none">
               Total: {formatCurrency(subtotal)}
@@ -60,8 +60,8 @@ export function CartSummaryFooter({
 
         {/* Continue CTA */}
         <Button
-          size="full"
-          className="h-14 text-[16px] font-bold shadow-[0_4px_16px_rgba(79,70,229,0.3)] transition-all duration-300 active:scale-[0.98]"
+          size="lg"
+          className="w-full h-14 text-[16px] font-bold shadow-[var(--shadow-hero)] transition-all duration-300 active:scale-[0.98]"
           disabled={isContinueDisabled}
           onClick={onContinue}
         >
