@@ -9,11 +9,12 @@
 
 export {
   /* ─── Navigation ─────────────────────────────────────────────────────────── */
-  Home,
+  LayoutDashboard,
   Receipt,
   PlusCircle,
   BarChart3,
   MoreHorizontal,
+  MoreVertical,
   ArrowLeft,
   ChevronRight,
   ChevronDown,

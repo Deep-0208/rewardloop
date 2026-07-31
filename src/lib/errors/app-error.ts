@@ -6,6 +6,9 @@
  */
 
 import type { ActionResult, ErrorCode } from "@/types/domain";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("app-error");
 
 /** HTTP status code mapping for error codes */
 const ERROR_STATUS_MAP: Record<ErrorCode, number> = {
@@ -66,9 +69,19 @@ export function handleActionError(error: unknown): ActionResult<never> {
     return { success: false, error: error.message, code: error.code };
   }
 
+  // Next.js uses exceptions for control flow (redirects, dynamic rendering)
+  // We must re-throw these so Next.js can handle them appropriately.
+  if (
+    error instanceof Error &&
+    (error.message.includes("NEXT_REDIRECT") ||
+      (error as { digest?: string }).digest?.includes("NEXT_REDIRECT") ||
+      (error as { digest?: string }).digest?.includes("DYNAMIC_SERVER_USAGE"))
+  ) {
+    throw error;
+  }
+
   // Log unexpected errors for debugging
-  // eslint-disable-next-line no-console
-  console.error("[handleActionError] Unexpected error:", error);
+  log.error("[handleActionError] Unexpected error:", { error });
 
   return {
     success: false,

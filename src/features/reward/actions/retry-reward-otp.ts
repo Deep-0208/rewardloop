@@ -22,7 +22,11 @@ export async function retryRewardOTP(input: {
       );
     const supabase = await createClient();
     const context = await resolveVisitContext(supabase, parsed.data.customerId);
-    const result = await retryRewardOtp(supabase, context);
+    const result = await retryRewardOtp(
+      supabase,
+      context,
+      parsed.data.rewardAmountPaise,
+    );
     return actionSuccess({ ...result, cooldownSeconds: 30 });
   } catch (error) {
     return handleActionError(error);

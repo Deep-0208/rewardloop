@@ -29,7 +29,7 @@ export function ErrorState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-4 text-center",
+        "flex flex-col items-center justify-center gap-4 text-center w-full",
         compact ? "gap-3 px-4 py-6" : "flex-1 px-8 py-12",
         className,
       )}
@@ -58,7 +58,7 @@ export function ErrorState({
         <p
           className={cn(
             "text-muted-foreground",
-            compact ? "text-xs" : "max-w-xs text-sm",
+            compact ? "text-xs" : "text-sm",
           )}
         >
           {description}

@@ -41,8 +41,8 @@ export function RewardRulesContent({ initialRules }: RewardRulesContentProps) {
     const rp = Number(rewardPercentage);
     const mrp = Number(maxRedeemPercentage);
 
-    if (rp < 1 || rp > 50 || mrp < 1 || mrp > 50) {
-      toast.error("Percentages must be between 1 and 50.");
+    if (rp < 1 || rp > 100 || mrp < 1 || mrp > 100) {
+      toast.error("Percentages must be between 1 and 100.");
       return;
     }
 
@@ -64,7 +64,7 @@ export function RewardRulesContent({ initialRules }: RewardRulesContentProps) {
       <PageHeader
         title="Reward Rules"
         subtitle="Configure loyalty program"
-        onBack={() => router.push("/more")}
+        onBack={() => router.back()}
       />
 
       {/* Current Rules Display */}
@@ -99,7 +99,7 @@ export function RewardRulesContent({ initialRules }: RewardRulesContentProps) {
                     id="reward-pct"
                     type="number"
                     min="1"
-                    max="50"
+                    max="100"
                     value={rewardPercentage}
                     onChange={(e) => setRewardPercentage(e.target.value)}
                     className="w-24 text-center tabular-nums"
@@ -125,7 +125,7 @@ export function RewardRulesContent({ initialRules }: RewardRulesContentProps) {
                     id="max-redeem-pct"
                     type="number"
                     min="1"
-                    max="50"
+                    max="100"
                     value={maxRedeemPercentage}
                     onChange={(e) => setMaxRedeemPercentage(e.target.value)}
                     className="w-24 text-center tabular-nums"

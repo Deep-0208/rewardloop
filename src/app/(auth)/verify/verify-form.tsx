@@ -47,7 +47,7 @@ export default function VerifyForm({ phone }: { phone: string }) {
         setServerError(result.error);
         return;
       }
-      router.push(result.data.redirectTo);
+      router.replace(result.data.redirectTo);
     });
   };
 

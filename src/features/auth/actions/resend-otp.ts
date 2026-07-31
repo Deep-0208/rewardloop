@@ -58,10 +58,17 @@ export async function resendOTP(input: SendOTPInput): Promise<SendOTPResponse> {
           "RATE_LIMITED",
         );
       }
-      return actionError(
-        error.message || "Failed to resend OTP",
-        "SERVER_ERROR",
-      );
+
+      let errorMessage = error.message || "Failed to resend OTP";
+      if (
+        errorMessage.includes("unverified") ||
+        errorMessage.includes("Trial account")
+      ) {
+        errorMessage =
+          "Unable to send the verification code to this number. Please contact our support team for assistance.";
+      }
+
+      return actionError(errorMessage, "SERVER_ERROR");
     }
 
     await setOtpCooldownCookie();

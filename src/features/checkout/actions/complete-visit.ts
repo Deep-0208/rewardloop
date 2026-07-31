@@ -72,7 +72,9 @@ export async function completeVisit(
         message: error.message,
       });
       throw new AppError(
-        "Unable to complete this visit. No changes were saved.",
+        error.code === "22023"
+          ? error.message
+          : "Unable to complete this visit. No changes were saved.",
         "TRANSACTION_FAILED",
       );
     }

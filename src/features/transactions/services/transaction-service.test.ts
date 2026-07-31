@@ -17,7 +17,20 @@ describe("transaction-service", () => {
         payment_method: "online",
         created_at: "2026-07-26T12:00:00Z",
         customers: [{ name: "Alice", phone: "+1234567890" }], // Array from join
-        transaction_items: [{ id: "item-1" }, { id: "item-2" }], // Array from join
+        transaction_items: [
+          {
+            id: "item-1",
+            quantity: 1,
+            unit_price: 500,
+            catalog_item_type: "service",
+          },
+          {
+            id: "item-2",
+            quantity: 1,
+            unit_price: 500,
+            catalog_item_type: "product",
+          },
+        ], // Array from join
       },
       {
         id: "txn-2",
@@ -52,6 +65,8 @@ describe("transaction-service", () => {
       customerName: "Alice",
       customerPhone: "+1234567890",
       subtotalPaise: 1000,
+      serviceSubtotalPaise: 500,
+      productSubtotalPaise: 500,
       rewardUsedPaise: 100,
       rewardEarnedPaise: 50,
       finalPaidPaise: 900,
@@ -66,6 +81,8 @@ describe("transaction-service", () => {
       customerName: null,
       customerPhone: "+0987654321",
       subtotalPaise: 500,
+      serviceSubtotalPaise: 0,
+      productSubtotalPaise: 0,
       rewardUsedPaise: 0,
       rewardEarnedPaise: 25,
       finalPaidPaise: 500,
@@ -77,7 +94,7 @@ describe("transaction-service", () => {
 
   it("should throw an error if database query fails", async () => {
     const mockError = { code: "500", message: "Database failure" };
-    
+
     const mockSupabase = {
       from: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
@@ -88,6 +105,8 @@ describe("transaction-service", () => {
       }),
     } as unknown as SupabaseClient;
 
-    await expect(getTransactionHistory(mockSupabase, 10)).rejects.toEqual(mockError);
+    await expect(getTransactionHistory(mockSupabase, 10)).rejects.toEqual(
+      mockError,
+    );
   });
 });

@@ -53,7 +53,7 @@ export function TransactionCard({
   return (
     <Card
       className={cn(
-        "border-0 shadow-[var(--shadow-card)] transition-all duration-150",
+        "transition-all duration-150",
         onClick &&
           "cursor-pointer hover:shadow-[var(--shadow-soft)] active:scale-[0.98]",
         className,

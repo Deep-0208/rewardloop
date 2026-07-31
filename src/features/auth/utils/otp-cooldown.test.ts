@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { isOtpRateLimited, setOtpCooldownCookie } from "./otp-cooldown";
 import { cookies } from "next/headers";
@@ -55,13 +56,13 @@ describe("otp-cooldown", () => {
       keyData,
       { name: "HMAC", hash: "SHA-256" },
       false,
-      ["sign"]
+      ["sign"],
     );
     const timestampStr = timestamp.toString();
     const signatureBuffer = await crypto.subtle.sign(
       "HMAC",
       cryptoKey,
-      encoder.encode(timestampStr)
+      encoder.encode(timestampStr),
     );
     const hexSignature = Array.from(new Uint8Array(signatureBuffer))
       .map((b) => b.toString(16).padStart(2, "0"))
@@ -76,7 +77,7 @@ describe("otp-cooldown", () => {
     mockCookieStore.get.mockReturnValue({ value: signedValue });
 
     const result = await isOtpRateLimited("+1234567890");
-    
+
     expect(result).toBe(true);
     expect(mockRpc).not.toHaveBeenCalled(); // Fast path hit
   });
@@ -89,7 +90,7 @@ describe("otp-cooldown", () => {
     mockRpc.mockResolvedValue({ data: true, error: null }); // DB says allowed = true
 
     const result = await isOtpRateLimited("+1234567890");
-    
+
     expect(result).toBe(false); // allowed = true means rateLimited = false
     expect(mockRpc).toHaveBeenCalled();
   });
@@ -103,7 +104,7 @@ describe("otp-cooldown", () => {
     mockRpc.mockResolvedValue({ data: false, error: null }); // DB says allowed = false (rate limited)
 
     const result = await isOtpRateLimited("+1234567890");
-    
+
     expect(result).toBe(true); // allowed = false means rateLimited = true
     expect(mockRpc).toHaveBeenCalled();
   });
@@ -113,7 +114,7 @@ describe("otp-cooldown", () => {
     mockRpc.mockResolvedValue({ data: null, error: new Error("DB Error") });
 
     const result = await isOtpRateLimited("+1234567890");
-    
+
     expect(result).toBe(false); // Fail open
   });
 
@@ -123,7 +124,7 @@ describe("otp-cooldown", () => {
     expect(mockCookieStore.set).toHaveBeenCalledWith(
       "rl_otp_lock",
       expect.stringMatching(/^\d+\.[a-f0-9]{64}$/),
-      expect.objectContaining({ maxAge: 30 })
+      expect.objectContaining({ maxAge: 30 }),
     );
   });
 });

@@ -44,6 +44,8 @@ export interface DashboardData {
   readonly totalCustomers: number;
   /** Total lifetime revenue in paise */
   readonly lifetimeRevenuePaise: Paise;
+  /** Name of the business */
+  readonly businessName: string;
 }
 
 /** Server Action response for getDashboardData */

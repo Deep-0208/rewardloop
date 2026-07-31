@@ -217,6 +217,11 @@ export function CheckoutSummaryStep() {
 
   const handleBack = useCallback(() => setStep("catalog"), [setStep]);
 
+  const handleCancel = useCallback(() => {
+    reset();
+    router.replace(ROUTES.DASHBOARD);
+  }, [reset, router]);
+
   const handleRetry = useCallback(() => {
     if (!requestInput) return;
     setIsLoading(true);
@@ -284,7 +289,6 @@ export function CheckoutSummaryStep() {
     toast.success("✓ Visit Completed", { duration: 1_000 });
     window.setTimeout(() => {
       reset();
-      router.replace(ROUTES.DASHBOARD);
     }, 1_000);
   }, [
     idempotencyKey,
@@ -292,7 +296,6 @@ export function CheckoutSummaryStep() {
     paymentMethod,
     requestInput,
     reset,
-    router,
     summary,
   ]);
 
@@ -303,14 +306,27 @@ export function CheckoutSummaryStep() {
           title="Review bill"
           subtitle="Step 3 of 3"
           onBack={handleBack}
+          actions={
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Cancel
+            </Button>
+          }
         />
         <EmptyState
           icon={<Receipt className="size-8 text-muted-foreground" />}
           title="Your bill is empty"
           description="Select at least one service or product before reviewing the bill."
           action={
-            <Button size="touch" onClick={() => setStep("catalog")}>
-              Back to catalog
+            <Button
+              size="touch"
+              onClick={() => setStep(customer ? "catalog" : "customer")}
+            >
+              {customer ? "Back to catalog" : "Start over"}
             </Button>
           }
         />
@@ -325,6 +341,16 @@ export function CheckoutSummaryStep() {
           title="Review bill"
           subtitle="Step 3 of 3"
           onBack={handleBack}
+          actions={
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Cancel
+            </Button>
+          }
         />
         <ErrorState
           title="Unable to load this bill"
@@ -345,6 +371,16 @@ export function CheckoutSummaryStep() {
         title="Review bill"
         subtitle="Step 3 of 3"
         onBack={handleBack}
+        actions={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCancel}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Cancel
+          </Button>
+        }
       />
 
       <main className="flex flex-1 flex-col p-4 animate-fade-in relative z-0">
@@ -460,6 +496,7 @@ export function CheckoutSummaryStep() {
                 />
                 <p
                   id="reward-help"
+                  aria-live="polite"
                   className={
                     inputError
                       ? "mt-[8px] text-[12px] text-destructive font-medium"
@@ -546,7 +583,7 @@ export function CheckoutSummaryStep() {
             <p className="text-[12px] text-muted-foreground font-semibold uppercase tracking-wider mb-3 pl-1">
               Payment Method
             </p>
-            <div className="flex bg-surface rounded-[24px] p-[4px] gap-[4px] border border-border/20">
+            <div className="flex bg-muted rounded-[24px] p-[4px] gap-[4px] border border-border/20">
               <button
                 type="button"
                 onClick={() => setPaymentMethod("cash")}
@@ -679,7 +716,7 @@ export function CheckoutSummaryStep() {
 
       {/* Inline OTP Bottom Sheet Overlay */}
       {summary.requiresOtp && otpState === "sent" && !otpVerifiedToken && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+        <div className="fixed inset-0 z-[70] flex flex-col justify-end">
           <div
             className="absolute inset-0 bg-background/60 backdrop-blur-md animate-in fade-in duration-300"
             onClick={() => setOtpState("idle")}

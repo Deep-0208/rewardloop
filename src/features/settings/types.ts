@@ -62,5 +62,11 @@ export interface RewardRulesInput {
   readonly maxRedeemPercentage: number;
 }
 
+/** Input for updating business profile. */
+export interface BusinessProfileInput {
+  readonly name: string;
+}
+
 export type MutateCatalogItemResponse = ActionResult<CatalogManagementItem>;
 export type UpdateRewardRulesResponse = ActionResult<RewardRulesConfig>;
+export type UpdateBusinessProfileResponse = ActionResult<BusinessProfile>;

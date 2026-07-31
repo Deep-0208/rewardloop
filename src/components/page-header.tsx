@@ -1,11 +1,14 @@
 import { cn } from "@/lib/utils";
 import { ArrowLeft } from "@/components/icons";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
   onBack?: () => void;
+  /** Optional path to go back to. If provided, renders a back link. */
+  backTo?: string;
   actions?: ReactNode;
   className?: string;
 }
@@ -20,11 +23,12 @@ export function PageHeader({
   title,
   subtitle,
   onBack,
+  backTo,
   actions,
   className,
 }: PageHeaderProps) {
   return (
-    <header className={cn("flex items-center gap-3 px-4 pt-4 pb-2", className)}>
+    <header className={cn("flex items-center gap-3 px-5 pt-6 pb-3", className)}>
       {onBack ? (
         <button
           type="button"
@@ -35,13 +39,22 @@ export function PageHeader({
           <ArrowLeft className="size-5" />
         </button>
       ) : null}
+      {backTo ? (
+        <Link
+          href={backTo}
+          className="touch-target flex items-center justify-center rounded-xl text-foreground transition-all duration-150 hover:bg-muted active:scale-95"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="size-5" />
+        </Link>
+      ) : null}
 
       <div className="flex-1">
-        <h1 className="text-2xl font-bold leading-tight tracking-tight text-foreground">
+        <h1 className="text-[22px] font-bold leading-tight tracking-tight text-foreground">
           {title}
         </h1>
         {subtitle ? (
-          <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">{subtitle}</p>
         ) : null}
       </div>
 

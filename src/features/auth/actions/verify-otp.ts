@@ -26,6 +26,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizePhone } from "@/utils/formatters/phone";
 import { actionSuccess, actionError } from "@/lib/api";
 import { handleActionError } from "@/lib/errors";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("verify-otp");
 import { ROUTES } from "@/constants";
 
 export async function verifyOTP(
@@ -76,68 +79,37 @@ export async function verifyOTP(
     const authUserId = authData.user.id;
     const adminSupabase = createAdminClient();
 
-    let dbUserId: string;
-    let role: "owner" | "staff" = "owner";
-    let businessId: string | null = null;
-    let newSessionVersion = 1;
-
     try {
-      // 2. Fetch or create user record in public.users
-      const { data: existingUser, error: userFetchError } = await adminSupabase
-        .from("users")
-        .select("id, auth_user_id, business_id, phone, role, status")
-        .eq("auth_user_id", authUserId)
-        .maybeSingle();
+      // 2. Execute idempotent, atomic verify RPC
+      const { data: rpcData, error: rpcError } = await adminSupabase.rpc(
+        "verify_user_session",
+        {
+          p_auth_user_id: authUserId,
+          p_phone: e164Phone,
+        },
+      );
 
-      if (userFetchError) {
-        throw new Error("Failed to retrieve user profile.");
+      if (rpcError) {
+        log.error("verify_user_session RPC failed", {
+          error: rpcError,
+          authUserId,
+        });
+        throw new Error("Failed to initialize user session.");
       }
 
-      if (existingUser) {
-        if (existingUser.status === "suspended") {
-          throw new Error(
-            "Your account has been suspended. Please contact support.",
-          );
-        }
-
-        dbUserId = existingUser.id;
-        role = existingUser.role as "owner" | "staff";
-        businessId = existingUser.business_id;
-
-        // Atomic increment of session_version
-        const { data: newVersion, error: updateError } =
-          await adminSupabase.rpc("increment_session_version", {
-            p_auth_user_id: authUserId,
-          });
-
-        if (updateError || newVersion === null) {
-          throw new Error("Failed to update session version.");
-        }
-        newSessionVersion = newVersion;
-      } else {
-        // Create new user profile in public.users without a business attached
-        const { data: newUser, error: createError } = await adminSupabase
-          .from("users")
-          .insert({
-            auth_user_id: authUserId,
-            phone: e164Phone,
-            business_id: null,
-            role: "owner",
-            status: "active",
-            session_version: 1,
-          })
-          .select("id, role, status, business_id, session_version")
-          .single();
-
-        if (createError || !newUser) {
-          throw new Error("Failed to initialize user account.");
-        }
-
-        dbUserId = newUser.id;
-        role = newUser.role as "owner" | "staff";
-        businessId = newUser.business_id;
-        newSessionVersion = newUser.session_version ?? 1;
+      if (!rpcData.success) {
+        throw new Error(
+          rpcData.message || "Failed to initialize user session.",
+        );
       }
+
+      const {
+        user_id: dbUserId,
+        business_id: businessId,
+        session_version: newSessionVersion,
+        onboarding_status: onboardingStatus,
+        role,
+      } = rpcData.data;
 
       // 3. Evaluate Business status and calculate redirect route
       let authBusiness: AuthBusiness | null = null;
@@ -156,19 +128,19 @@ export async function verifyOTP(
               "Your business account is suspended. Please contact support.",
             );
           }
-
-          if (businessData.status === "active") {
-            authBusiness = {
-              id: businessData.id,
-              name: businessData.name,
-              status: "active",
-            };
-            redirectTo = ROUTES.DASHBOARD;
-          } else {
-            authBusiness = null;
-            redirectTo = ROUTES.ONBOARDING_BUSINESS;
-          }
+          authBusiness = {
+            id: businessData.id,
+            name: businessData.name,
+            status: "active",
+          };
         }
+      }
+
+      // Route explicitly by onboarding status
+      if (onboardingStatus === "COMPLETED") {
+        redirectTo = ROUTES.DASHBOARD;
+      } else {
+        redirectTo = ROUTES.ONBOARDING_BUSINESS;
       }
 
       // 4. Write HMAC-signed rl_sv cookie for device session versioning
@@ -187,7 +159,15 @@ export async function verifyOTP(
         role,
         businessId,
         sessionVersion: newSessionVersion,
+        onboardingStatus,
+        lastLogin: new Date().toISOString(),
       };
+
+      log.info("OTP verified successfully", {
+        authUserId,
+        businessId,
+        onboardingStatus,
+      });
 
       return actionSuccess({
         user: authUser,

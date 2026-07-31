@@ -1,37 +1,24 @@
-const CACHE_NAME = 'rewardloop-v1.0.0';
-const URLS_TO_CACHE = [
-  '/',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
-];
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(URLS_TO_CACHE).catch(() => {}))
-  );
+self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-  self.clients.claim();
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request).then(response => response || caches.match('/')))
-  );
+self.addEventListener("sync", (event) => {
+  if (event.tag === "sync-offline-mutations") {
+    event.waitUntil(syncOfflineMutations());
+  }
 });
+
+async function syncOfflineMutations() {
+  // Post a message to all active clients (browser tabs) to trigger their
+  // in-memory or IndexedDB sync queues.
+  // We let the client-side Next.js code handle the actual Supabase fetching,
+  // since it has the Auth session tokens and business logic.
+  const clients = await self.clients.matchAll();
+  for (const client of clients) {
+    client.postMessage({ type: "TRIGGER_SYNC" });
+  }
+}

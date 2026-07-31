@@ -1,15 +1,17 @@
-import { AppShell } from "@/components/app-shell";
-
 /**
  * Onboarding layout — wraps setup flow pages.
  *
- * No bottom navigation. Stepped flow container.
- * Progress indicator will be added when onboarding feature is built.
+ * No AppShell. No bottom navigation. Full-width responsive layout
+ * with subtle brand gradient background for premium first impression.
  */
 export default function OnboardingLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <AppShell>{children}</AppShell>;
+  return (
+    <div className="onboarding-bg flex min-h-dvh w-full items-center justify-center p-4 sm:p-6 md:p-8">
+      {children}
+    </div>
+  );
 }

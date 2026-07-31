@@ -22,9 +22,9 @@ interface CatalogItemCardProps {
   readonly price: Paise;
   readonly type: CatalogItemType;
   readonly quantityInCart: number;
-  readonly onTap: (id: string) => void;
-  readonly onIncrement: (id: string) => void;
-  readonly onDecrement: (id: string) => void;
+  readonly onTap: (id: string, type: CatalogItemType) => void;
+  readonly onIncrement: (id: string, type: CatalogItemType) => void;
+  readonly onDecrement: (id: string, type: CatalogItemType) => void;
   readonly className?: string;
 }
 
@@ -167,14 +167,18 @@ export const CatalogItemCard = memo(function CatalogItemCard({
       tabIndex={0}
       onClick={() => {
         if (!isInCart) {
-          onTap(id);
+          onTap(id, type);
+        } else if (quantityInCart === 1) {
+          onDecrement(id, type);
         }
       }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           if (!isInCart) {
-            onTap(id);
+            onTap(id, type);
+          } else if (quantityInCart === 1) {
+            onDecrement(id, type);
           }
         }
       }}
@@ -211,7 +215,7 @@ export const CatalogItemCard = memo(function CatalogItemCard({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                onDecrement(id);
+                onDecrement(id, type);
               }}
               className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-foreground hover:bg-muted/80 text-xs font-bold transition-colors cursor-pointer"
               aria-label="Decrease quantity"
@@ -225,7 +229,7 @@ export const CatalogItemCard = memo(function CatalogItemCard({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                onIncrement(id);
+                onIncrement(id, type);
               }}
               className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold transition-colors cursor-pointer"
               aria-label="Increase quantity"

@@ -83,11 +83,7 @@ export function BottomNavigation({ items, className }: BottomNavigationProps) {
             aria-current={isActive ? "page" : undefined}
             aria-label={item.label}
           >
-            <Icon
-              className="size-[22px]"
-              strokeWidth={isActive ? 2.5 : 1.8}
-              fill={isActive ? "currentColor" : "none"}
-            />
+            <Icon className="size-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
             <span
               className={cn(
                 "text-[10px] font-semibold leading-none",
@@ -96,9 +92,9 @@ export function BottomNavigation({ items, className }: BottomNavigationProps) {
             >
               {item.label}
             </span>
-            {/* Active dot indicator */}
+            {/* Active bar indicator */}
             {isActive && (
-              <div className="absolute bottom-[6px] w-1 h-1 rounded-full bg-primary" />
+              <div className="absolute -bottom-2 w-8 h-1 rounded-full bg-primary" />
             )}
           </button>
         );

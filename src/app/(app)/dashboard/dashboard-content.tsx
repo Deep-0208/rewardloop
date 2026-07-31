@@ -31,15 +31,15 @@ export function DashboardContent({
 
       {/* Today's Summary */}
       <section
-        className="px-[var(--spacing-md)] mt-[var(--spacing-sm)] animate-fade-in"
+        className="px-5 mt-4 animate-fade-in"
         style={{ animationDelay: "75ms" }}
         aria-label="Today's summary"
       >
-        <div className="bg-card rounded-[var(--radius-card)] shadow-[var(--shadow-card)] px-[var(--spacing-md)] py-[var(--spacing-sm)] flex items-center justify-around">
+        <div className="bg-card rounded-[var(--radius-card)] border border-border/30 shadow-[var(--shadow-card)] px-5 py-3.5 flex items-center justify-around">
           <SummaryItem value={String(kpis.todayTransactions)} label="Visits" />
-          <div className="w-px h-[28px] bg-border/40" />
+          <div className="w-px h-7 bg-border/50" />
           <SummaryItem value={String(totalCustomers)} label="Customers" />
-          <div className="w-px h-[28px] bg-border/40" />
+          <div className="w-px h-7 bg-border/50" />
           <SummaryItem
             value={formatCurrency(lifetimeRevenuePaise)}
             label="Lifetime"

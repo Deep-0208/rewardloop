@@ -41,10 +41,13 @@ export default async function DashboardPage() {
     );
   }
 
-  const { kpis, recentTransactions, totalCustomers, lifetimeRevenuePaise } =
-    result.data;
-  // TODO: Fetch the actual shop name from business context or db
-  const shopName = "My Business";
+  const {
+    kpis,
+    recentTransactions,
+    totalCustomers,
+    lifetimeRevenuePaise,
+    businessName,
+  } = result.data;
 
   const todayStr = new Intl.DateTimeFormat("en-IN", {
     weekday: "short",
@@ -55,22 +58,19 @@ export default async function DashboardPage() {
   return (
     <div className="flex-1 flex flex-col pb-[100px]">
       {/* Header */}
-      <header className="px-[var(--spacing-md)] pt-[var(--spacing-lg)] pb-[var(--spacing-sm)] animate-fade-in">
+      <header className="px-5 pt-8 pb-4 animate-fade-in">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-[13px] font-medium text-[var(--color-text-tertiary)] mb-[2px]">
+            <p className="text-[13px] font-medium text-muted-foreground mb-0.5">
               {greeting} 👋
             </p>
-            <h1 className="text-[26px] font-bold tracking-tight text-[var(--color-text-primary)] leading-tight line-clamp-1">
-              {shopName}
+            <h1 className="text-[24px] font-bold tracking-tight text-foreground leading-tight line-clamp-1">
+              {businessName}
             </h1>
           </div>
-          <div className="text-right mt-[4px] shrink-0 ml-4">
-            <p className="text-[13px] font-semibold text-[var(--color-text-secondary)]">
+          <div className="text-right mt-1 shrink-0 ml-4 rounded-lg bg-muted/60 px-3 py-1.5">
+            <p className="text-[12px] font-semibold text-foreground tabular-nums">
               {todayStr}
-            </p>
-            <p className="text-[11px] text-[var(--color-text-tertiary)] mt-[1px]">
-              Today
             </p>
           </div>
         </div>

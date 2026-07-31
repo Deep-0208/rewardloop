@@ -33,6 +33,7 @@ function isExpired(expiresAt: string): boolean {
 export async function sendRewardOtp(
   supabase: SupabaseClient,
   context: VisitContext,
+  rewardAmountPaise: number,
 ): Promise<{ expiresAt: string }> {
   const adminSupabase = createAdminClient();
   const { data: allowed, error: rateError } = await adminSupabase.rpc(
@@ -77,6 +78,7 @@ export async function sendRewardOtp(
       attempts: 0,
       max_attempts: OTP_MAX_ATTEMPTS,
       invalidated: false,
+      reward_amount_paise: rewardAmountPaise,
     })
     .select("id")
     .single();
@@ -120,6 +122,7 @@ export async function sendRewardOtp(
 export async function retryRewardOtp(
   supabase: SupabaseClient,
   context: VisitContext,
+  rewardAmountPaise: number,
 ) {
   const adminSupabase = createAdminClient();
   const { error } = await adminSupabase
@@ -137,7 +140,7 @@ export async function retryRewardOtp(
       "SERVER_ERROR",
     );
   }
-  return sendRewardOtp(supabase, context);
+  return sendRewardOtp(supabase, context, rewardAmountPaise);
 }
 
 /** Verifies a one-time reward OTP and returns the token consumed by complete_visit. */

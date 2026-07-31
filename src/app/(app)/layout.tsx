@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/app-shell";
 import { BottomNav } from "@/components/layout/bottom-nav";
+import { RealtimeProvider } from "@/components/providers/realtime-provider";
 
 /**
  * App layout — wraps all main application pages.
@@ -12,8 +13,10 @@ export default function AppLayout({
 }>) {
   return (
     <AppShell>
-      {children}
-      <BottomNav />
+      <RealtimeProvider>
+        {children}
+        <BottomNav />
+      </RealtimeProvider>
     </AppShell>
   );
 }

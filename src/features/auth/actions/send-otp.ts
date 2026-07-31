@@ -58,7 +58,17 @@ export async function sendOTP(input: SendOTPInput): Promise<SendOTPResponse> {
           "RATE_LIMITED",
         );
       }
-      return actionError(error.message || "Failed to send OTP", "SERVER_ERROR");
+
+      let errorMessage = error.message || "Failed to send OTP";
+      if (
+        errorMessage.includes("unverified") ||
+        errorMessage.includes("Trial account")
+      ) {
+        errorMessage =
+          "Unable to send the verification code to this number. Please contact our support team for assistance.";
+      }
+
+      return actionError(errorMessage, "SERVER_ERROR");
     }
 
     await setOtpCooldownCookie();

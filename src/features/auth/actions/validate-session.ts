@@ -47,6 +47,12 @@ export async function validateSession(): Promise<ValidateSessionResponse> {
     return actionSuccess({
       userId: validation.user.id,
       phone: validation.user.phone ?? "",
+      businessId: validation.businessId ?? null,
+      sessionVersion: validation.sessionVersion ?? 1,
+      role: validation.role ?? "owner",
+      accountStatus: validation.accountStatus ?? "active",
+      onboardingStatus: validation.onboardingStatus ?? "NOT_STARTED",
+      lastLogin: validation.lastLogin ?? null,
     });
   } catch (err) {
     return handleActionError(err);

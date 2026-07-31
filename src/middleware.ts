@@ -52,23 +52,38 @@ export function isOnboardingRoute(pathname: string): boolean {
  */
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  
-  // Skip strict DB validation for public/auth routes
-  const requireStrictValidation = !isPublicRoute(pathname) && !isAuthRoute(pathname);
-  
-  const { response, user } = await updateSession(request, requireStrictValidation);
+
+  // Only enforce strict session_version DB checks for main app routes
+  const requireStrictValidation = isAppRoute(pathname);
+
+  const { response, user, onboardingStatus } = await updateSession(
+    request,
+    requireStrictValidation,
+  );
+
   // Unauthenticated -> redirect from protected routes to /login
-  if (
-    !user &&
-    (isAppRoute(pathname) || isOnboardingRoute(pathname))
-  ) {
+  if (!user && (isAppRoute(pathname) || isOnboardingRoute(pathname))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Authenticated -> redirect from auth routes to /dashboard
+  // Authenticated -> redirect from auth routes to /dashboard or /onboarding
   if (user && isAuthRoute(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname =
+      onboardingStatus === "COMPLETED" ? "/dashboard" : "/onboarding/business";
+    return NextResponse.redirect(url);
+  }
+
+  // Business Routing Guards based on explicit state machine
+  if (user && onboardingStatus !== "COMPLETED" && isAppRoute(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/onboarding/business";
+    return NextResponse.redirect(url);
+  }
+
+  if (user && onboardingStatus === "COMPLETED" && isOnboardingRoute(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

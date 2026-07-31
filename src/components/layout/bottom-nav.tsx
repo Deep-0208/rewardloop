@@ -183,11 +183,11 @@ export function BottomNav({ onAddVisit }: BottomNavProps) {
   return (
     <nav
       className="
-        fixed bottom-4 left-1/2 -translate-x-1/2 z-50
-        w-[calc(100%-2rem)] max-w-[400px] h-[72px]
-        bg-card/95 backdrop-blur-xl
-        shadow-[var(--shadow-float)]
-        rounded-[var(--radius-sheet)]
+        fixed bottom-5 left-1/2 -translate-x-1/2 z-50
+        w-[calc(100%-2.5rem)] max-w-[400px] h-[72px]
+        bg-card/85 backdrop-blur-2xl
+        shadow-[var(--shadow-float)] border border-border/40
+        rounded-3xl
         flex items-center justify-around
         px-2
       "
@@ -207,11 +207,11 @@ export function BottomNav({ onAddVisit }: BottomNavProps) {
                 className="
                   absolute -top-5
                   flex items-center justify-center
-                  w-[60px] h-[60px]
+                  w-[56px] h-[56px]
                   bg-primary rounded-full
                   text-primary-foreground
-                  border-[4px] border-background
-                  animate-fab-glow
+                  border-[4px] border-card
+                  shadow-[0_8px_16px_-4px_rgba(79,70,229,0.3)]
                   transition-all duration-200
                   active:scale-90
                   cursor-pointer
@@ -261,7 +261,7 @@ export function BottomNav({ onAddVisit }: BottomNavProps) {
               {tab.label}
             </span>
             {isActive && (
-              <div className="absolute bottom-[6px] w-[4px] h-[4px] rounded-full bg-primary" />
+              <div className="absolute bottom-[6px] w-8 h-0.5 rounded-full bg-primary" />
             )}
           </button>
         );

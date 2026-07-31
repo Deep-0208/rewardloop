@@ -118,7 +118,7 @@ export function CatalogManagementContent({
       <PageHeader
         title="Catalog"
         subtitle={`${items.length} items`}
-        onBack={() => router.push("/more")}
+        onBack={() => router.back()}
         actions={
           <Button
             className="rounded-full shadow-sm font-semibold px-4"
@@ -140,10 +140,16 @@ export function CatalogManagementContent({
         className="w-full"
       >
         <TabsList className="w-full grid grid-cols-2 mb-6 h-11 rounded-full bg-muted/70 p-1">
-          <TabsTrigger value="service" className="rounded-full font-semibold">
+          <TabsTrigger
+            value="service"
+            className="rounded-full h-full font-semibold"
+          >
             Services
           </TabsTrigger>
-          <TabsTrigger value="product" className="rounded-full font-semibold">
+          <TabsTrigger
+            value="product"
+            className="rounded-full h-full font-semibold"
+          >
             Products
           </TabsTrigger>
         </TabsList>

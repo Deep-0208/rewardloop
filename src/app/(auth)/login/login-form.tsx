@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { PhoneInput } from "@/features/auth/components/phone-input";
 import {
@@ -36,6 +37,7 @@ export default function LoginForm({
     resolver: zodResolver(phoneSchema),
     defaultValues: {
       phone: initialPhone,
+      termsAccepted: false,
     },
     mode: "onChange",
   });
@@ -111,6 +113,41 @@ export default function LoginForm({
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="termsAccepted"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-[var(--shadow-soft)]">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <p className="text-[13px] text-muted-foreground leading-relaxed">
+                        I agree to the{" "}
+                        <a
+                          href="/terms"
+                          className="underline hover:text-foreground"
+                        >
+                          Terms of Service
+                        </a>{" "}
+                        and{" "}
+                        <a
+                          href="/privacy"
+                          className="underline hover:text-foreground"
+                        >
+                          Privacy Policy
+                        </a>
+                        .
+                      </p>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+
               <Button
                 type="submit"
                 size="full"
@@ -122,11 +159,6 @@ export default function LoginForm({
               </Button>
             </form>
           </Form>
-
-          {/* Terms */}
-          <p className="text-[12px] text-muted-foreground text-center leading-relaxed max-w-[280px] mx-auto">
-            By continuing, you agree to our Terms of Service and Privacy Policy
-          </p>
         </div>
       </div>
     </div>

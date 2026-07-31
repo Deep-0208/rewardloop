@@ -48,10 +48,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} h-full`}
+      className={`${inter.variable} h-full w-full`}
       suppressHydrationWarning
     >
-      <body className="min-h-dvh flex flex-col font-sans antialiased">
+      <body className="min-h-dvh w-full flex flex-col font-sans antialiased">
         <Providers>{children}</Providers>
         {process.env.NODE_ENV === "development" && <Agentation />}
         <Script id="sw-registration" strategy="afterInteractive">
@@ -59,7 +59,7 @@ export default function RootLayout({
             if ('serviceWorker' in navigator) {
               window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/sw.js').catch(function(err) {
-                  console.log('Service Worker registration failed: ', err);
+                  console.error('Service Worker registration failed: ', err);
                 });
               });
             }

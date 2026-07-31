@@ -5,10 +5,12 @@
  * Called from the root middleware.ts.
  */
 
-/* eslint-disable no-console */
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { validateRewardLoopSession } from "@/features/auth/utils/session-validator";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("middleware");
 
 export async function updateSession(
   request: NextRequest,
@@ -20,7 +22,12 @@ export async function updateSession(
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ) {
-    return { response: supabaseResponse, user: null };
+    return {
+      response: supabaseResponse,
+      user: null,
+      businessId: null,
+      onboardingStatus: null,
+    };
   }
 
   // Fast path: If no Supabase auth cookies exist, return immediately without network roundtrips
@@ -29,11 +36,12 @@ export async function updateSession(
     .some((c) => c.name.startsWith("sb-"));
 
   if (!hasAuthCookie) {
-    console.error(
-      "[MIDDLEWARE REJECT] NO AUTH COOKIE FOUND",
-      request.cookies.getAll(),
-    );
-    return { response: supabaseResponse, user: null };
+    return {
+      response: supabaseResponse,
+      user: null,
+      businessId: null,
+      onboardingStatus: null,
+    };
   }
 
   const supabase = createServerClient(
@@ -65,7 +73,7 @@ export async function updateSession(
   );
 
   if (!validation.valid) {
-    console.error("[MIDDLEWARE REJECT]", {
+    log.error("[MIDDLEWARE REJECT]", {
       cookieValue,
       reason: validation.reason,
       hasAuthCookie,
@@ -73,8 +81,18 @@ export async function updateSession(
     // Tampered, missing cookie, revoked, or suspended -> revoke session
     await supabase.auth.signOut();
     supabaseResponse.cookies.delete("rl_sv");
-    return { response: supabaseResponse, user: null };
+    return {
+      response: supabaseResponse,
+      user: null,
+      businessId: null,
+      onboardingStatus: null,
+    };
   }
 
-  return { response: supabaseResponse, user: validation.user };
+  return {
+    response: supabaseResponse,
+    user: validation.user,
+    businessId: validation.businessId,
+    onboardingStatus: validation.onboardingStatus,
+  };
 }

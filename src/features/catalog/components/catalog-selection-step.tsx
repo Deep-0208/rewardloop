@@ -8,6 +8,8 @@ import {
   useState,
   useTransition,
 } from "react";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -27,6 +29,7 @@ import { CatalogSearchInput } from "./catalog-search-input";
 import { CartSummaryFooter } from "./cart-summary-footer";
 import { CartItemRow } from "./cart-item-row";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { catalogCache, clearCatalogPromise } from "../utils/catalog-cache";
 
 /* ─── Fetch Reducer ─────────────────────────────────────────────────────────── */
 
@@ -69,15 +72,17 @@ export function CatalogSelectionStep() {
   const [, startTransition] = useTransition();
 
   /* ─── Store ────────────────────────────────────────────────────────────── */
+  const selectedServices = useBillingStore((s) => s.selectedServices);
+  const selectedProducts = useBillingStore((s) => s.selectedProducts);
   const addService = useBillingStore((s) => s.addService);
   const addProduct = useBillingStore((s) => s.addProduct);
   const updateServiceQuantity = useBillingStore((s) => s.updateServiceQuantity);
   const updateProductQuantity = useBillingStore((s) => s.updateProductQuantity);
-  const getCartItems = useBillingStore((s) => s.getCartItems);
   const setStep = useBillingStore((s) => s.setStep);
   const getSubtotal = useBillingStore((s) => s.getSubtotal);
   const getTotalItems = useBillingStore((s) => s.getTotalItems);
   const getTotalQuantity = useBillingStore((s) => s.getTotalQuantity);
+  const reset = useBillingStore((s) => s.reset);
 
   /* ─── Data Fetching ────────────────────────────────────────────────────── */
   const [fetchKey, setFetchKey] = useState(0);
@@ -86,17 +91,46 @@ export function CatalogSelectionStep() {
     let stale = false;
 
     async function load() {
-      const result = await getCatalogItems();
-      if (stale) return;
-
-      if (result.success) {
-        dispatch({ type: "SUCCESS", data: result.data });
+      // 1. Immediately yield cached data if we have it (Fast Checkout)
+      const cachedResponse = catalogCache.get("catalog");
+      if (cachedResponse?.success) {
+        dispatch({ type: "SUCCESS", data: cachedResponse.data });
       } else {
-        dispatch({ type: "ERROR", error: result.error });
+        dispatch({ type: "LOADING" });
+      }
+
+      // 2. Fetch the latest catalog in the background
+      try {
+        const result = await catalogCache.fetchWithRetry(
+          "catalog",
+          async () => {
+            return await getCatalogItems();
+          },
+        );
+        clearCatalogPromise();
+
+        if (stale) return;
+
+        if (result.success) {
+          // Only update UI if the catalog actually changed
+          if (
+            JSON.stringify(
+              cachedResponse?.success ? cachedResponse.data : null,
+            ) !== JSON.stringify(result.data)
+          ) {
+            dispatch({ type: "SUCCESS", data: result.data });
+          }
+        } else if (!cachedResponse?.success) {
+          // Only show error if we don't have a fallback cache
+          dispatch({ type: "ERROR", error: result.error });
+        }
+      } catch {
+        if (!cachedResponse?.success && !stale) {
+          dispatch({ type: "ERROR", error: "Failed to load catalog" });
+        }
       }
     }
 
-    dispatch({ type: "LOADING" });
     load();
 
     return () => {
@@ -105,6 +139,7 @@ export function CatalogSelectionStep() {
   }, [fetchKey]);
 
   const handleRetry = useCallback(() => {
+    catalogCache.clear();
     setFetchKey((k) => k + 1);
   }, []);
 
@@ -124,12 +159,12 @@ export function CatalogSelectionStep() {
 
   /* ─── Handlers ─────────────────────────────────────────────────────────── */
   const handleTapItem = useCallback(
-    (id: string) => {
+    (id: string, type: "service" | "product") => {
       const item = catalog.find((c) => c.id === id);
       if (!item) return;
 
       startTransition(() => {
-        if (item.type === "service") {
+        if (type === "service") {
           addService({
             catalogItemId: item.id,
             name: item.name,
@@ -152,12 +187,37 @@ export function CatalogSelectionStep() {
     setStep("summary");
   }, [getTotalItems, setStep]);
 
+  const handleIncrement = useCallback(
+    (id: string, type: "service" | "product") => {
+      if (type === "service") updateServiceQuantity(id, 1);
+      else updateProductQuantity(id, 1);
+    },
+    [updateServiceQuantity, updateProductQuantity],
+  );
+
+  const handleDecrement = useCallback(
+    (id: string, type: "service" | "product") => {
+      if (type === "service") updateServiceQuantity(id, -1);
+      else updateProductQuantity(id, -1);
+    },
+    [updateServiceQuantity, updateProductQuantity],
+  );
+
   const handleBack = useCallback(() => {
     setStep("customer");
   }, [setStep]);
 
+  const router = useRouter();
+  const handleCancel = useCallback(() => {
+    reset();
+    router.replace(ROUTES.DASHBOARD);
+  }, [reset, router]);
+
   /* ─── Quantity lookup for cards ─────────────────────────────────────────── */
-  const items = getCartItems();
+  const items = useMemo(
+    () => [...selectedServices, ...selectedProducts],
+    [selectedServices, selectedProducts],
+  );
   const quantityMap = useMemo(() => {
     const map = new Map<string, number>();
     for (const item of items) {
@@ -170,7 +230,15 @@ export function CatalogSelectionStep() {
   if (isLoading) {
     return (
       <div className="flex flex-1 flex-col">
-        <PageHeader title="Select Services & Products" onBack={handleBack} />
+        <PageHeader
+          title="Select Items"
+          onBack={handleBack}
+          actions={
+            <Button variant="ghost" size="sm" onClick={handleCancel}>
+              Cancel
+            </Button>
+          }
+        />
         <div className="px-4 pb-2">
           <Skeleton className="h-10 w-full rounded-md" />
         </div>
@@ -187,7 +255,20 @@ export function CatalogSelectionStep() {
   if (error) {
     return (
       <div className="flex flex-1 flex-col">
-        <PageHeader title="Select Services & Products" onBack={handleBack} />
+        <PageHeader
+          title="Select Items"
+          onBack={handleBack}
+          actions={
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Cancel
+            </Button>
+          }
+        />
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
           <AlertCircle className="size-12 text-destructive/60" />
           <div>
@@ -209,7 +290,20 @@ export function CatalogSelectionStep() {
   if (catalog.length === 0) {
     return (
       <div className="flex flex-1 flex-col">
-        <PageHeader title="Select Services & Products" onBack={handleBack} />
+        <PageHeader
+          title="Select Items"
+          onBack={handleBack}
+          actions={
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Cancel
+            </Button>
+          }
+        />
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
           <FileQuestion className="size-12 text-muted-foreground/60" />
           <div>
@@ -232,6 +326,16 @@ export function CatalogSelectionStep() {
         title="Select Items"
         subtitle="Step 2 of 3"
         onBack={handleBack}
+        actions={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCancel}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Cancel
+          </Button>
+        }
       />
 
       <div className="sticky top-0 z-30 bg-background/95 px-[var(--spacing-md)] pb-3 pt-[var(--spacing-md)] backdrop-blur-sm supports-backdrop-filter:bg-background/80 flex flex-col gap-[var(--spacing-sm)]">
@@ -247,11 +351,17 @@ export function CatalogSelectionStep() {
           onValueChange={(val) => setActiveTab(val as "service" | "product")}
           className="w-full"
         >
-          <TabsList className="w-full grid grid-cols-2 bg-surface p-1 rounded-[16px]">
-            <TabsTrigger value="service" className="rounded-[12px]">
+          <TabsList className="w-full grid grid-cols-2 bg-muted/70 p-1 rounded-full shadow-inner h-[44px]">
+            <TabsTrigger
+              value="service"
+              className="rounded-full h-full text-[14px] font-semibold transition-all"
+            >
               Services
             </TabsTrigger>
-            <TabsTrigger value="product" className="rounded-[12px]">
+            <TabsTrigger
+              value="product"
+              className="rounded-full h-full text-[14px] font-semibold transition-all"
+            >
               Products
             </TabsTrigger>
           </TabsList>
@@ -259,7 +369,7 @@ export function CatalogSelectionStep() {
       </div>
 
       <div
-        className="grid grid-cols-2 gap-[var(--spacing-s)] overflow-y-auto px-[var(--spacing-md)] pb-[160px] flex-1 mt-2"
+        className="grid grid-cols-2 content-start gap-[var(--spacing-s)] overflow-y-auto px-[var(--spacing-md)] pb-[160px] flex-1 mt-2"
         role="list"
         aria-label="Catalog items"
       >
@@ -280,14 +390,8 @@ export function CatalogSelectionStep() {
               type={item.type}
               quantityInCart={quantityMap.get(item.id) ?? 0}
               onTap={handleTapItem}
-              onIncrement={(id) => {
-                if (item.type === "service") updateServiceQuantity(id, 1);
-                else updateProductQuantity(id, 1);
-              }}
-              onDecrement={(id) => {
-                if (item.type === "service") updateServiceQuantity(id, -1);
-                else updateProductQuantity(id, -1);
-              }}
+              onIncrement={handleIncrement}
+              onDecrement={handleDecrement}
             />
           ))
         )}

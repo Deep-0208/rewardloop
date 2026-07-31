@@ -4,9 +4,11 @@ import { useState, useTransition, useEffect, useCallback } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/page-header";
+import { formatCustomerDisplayName } from "@/utils";
 import {
   CheckCircle,
   UserPlus,
@@ -23,6 +25,8 @@ import {
 } from "@/components/ui/form";
 import { searchCustomer } from "../actions/search-customer";
 import { createCustomer } from "../actions/create-customer";
+import { prefetchCustomers } from "../actions/prefetch-customers";
+import { triggerCatalogPrefetch } from "@/features/catalog/utils/catalog-cache";
 import { useBillingStore } from "@/stores/billing-store";
 import type { Customer } from "../types";
 
@@ -35,10 +39,19 @@ const createFormSchema = z.object({
   name: z.string().optional(),
 });
 
+import {
+  customerCache,
+  hasPrefetchedAll,
+  setHasPrefetchedAll,
+  cacheCustomerList,
+} from "../utils/customer-cache";
+
 export function CustomerSelectionStep() {
+  const router = useRouter();
   const setStep = useBillingStore((s) => s.setStep);
   const setCustomer = useBillingStore((s) => s.setCustomer);
   const selectedCustomer = useBillingStore((s) => s.customer);
+  const reset = useBillingStore((s) => s.reset);
 
   const [isPending, startTransition] = useTransition();
   const [searchResult, setSearchResult] = useState<{
@@ -59,8 +72,20 @@ export function CustomerSelectionStep() {
 
   const handleSearch = useCallback(
     (values: z.infer<typeof searchFormSchema>) => {
-      setSearchResult({ status: "searching" });
       const formattedPhone = `+91${values.phone}`;
+
+      const cached = customerCache.get(formattedPhone);
+      if (cached) {
+        if (cached === "not_found") {
+          setSearchResult({ status: "not_found" });
+          createForm.setValue("phone", values.phone);
+        } else {
+          setSearchResult({ status: "found", data: cached });
+        }
+        return;
+      }
+
+      setSearchResult({ status: "searching" });
 
       startTransition(async () => {
         const result = await searchCustomer({ phone: formattedPhone });
@@ -70,8 +95,10 @@ export function CustomerSelectionStep() {
         }
 
         if (result.data) {
+          customerCache.set(formattedPhone, result.data);
           setSearchResult({ status: "found", data: result.data });
         } else {
+          customerCache.set(formattedPhone, "not_found");
           setSearchResult({ status: "not_found" });
           createForm.setValue("phone", values.phone);
         }
@@ -104,6 +131,22 @@ export function CustomerSelectionStep() {
     }
   }, [phoneValue, lastSearchedPhone, searchResult.status, handleSearch]);
 
+  // Background prefetch all customers on mount for O(1) instant search
+  // Also lookahead prefetch catalog to make Step 2 instantaneous
+  useEffect(() => {
+    triggerCatalogPrefetch();
+
+    if (hasPrefetchedAll) return;
+
+    startTransition(async () => {
+      const result = await prefetchCustomers();
+      if (result.success && result.data) {
+        cacheCustomerList(result.data);
+        setHasPrefetchedAll(true);
+      }
+    });
+  }, []);
+
   function handleCreate(values: z.infer<typeof createFormSchema>) {
     setSearchResult({ status: "searching" });
     const formattedPhone = `+91${values.phone}`;
@@ -118,7 +161,7 @@ export function CustomerSelectionStep() {
         setSearchResult({ status: "error", error: result.error });
         return;
       }
-
+      customerCache.set(formattedPhone, result.data);
       handleSelectCustomer(result.data);
     });
   }
@@ -132,9 +175,18 @@ export function CustomerSelectionStep() {
     setStep("catalog");
   }
 
+  const handleCancel = useCallback(() => {
+    reset();
+    router.replace("/dashboard");
+  }, [reset, router]);
+
   return (
     <div className="flex flex-1 flex-col">
-      <PageHeader title="Select Customer" subtitle="Step 1 of 3" />
+      <PageHeader
+        title="Select Customer"
+        subtitle="Step 1 of 3"
+        onBack={handleCancel}
+      />
 
       <div
         className="flex flex-1 flex-col px-4 py-6"
@@ -162,9 +214,14 @@ export function CustomerSelectionStep() {
                         placeholder="9000000000"
                         type="tel"
                         inputMode="numeric"
+                        pattern="[0-9]*"
                         maxLength={10}
                         className="pl-[48px] h-[60px] bg-card border-2 border-border/60 focus:border-primary focus:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] rounded-[var(--radius-input)] text-[17px] font-medium outline-none transition-all shadow-[var(--shadow-soft)]"
                         {...field}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "");
+                          field.onChange(val);
+                        }}
                       />
                     </div>
                   </FormControl>
@@ -207,7 +264,10 @@ export function CustomerSelectionStep() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-[17px] text-[var(--color-text-primary)] leading-tight">
-                      {searchResult.data.name || "Unknown Name"}
+                      {formatCustomerDisplayName(
+                        searchResult.data.name,
+                        searchResult.data.phone,
+                      )}
                     </h3>
                     <p className="text-[12px] text-[var(--color-text-secondary)] mt-[2px]">
                       {searchResult.data.phone}
@@ -238,7 +298,12 @@ export function CustomerSelectionStep() {
                     onClick={() => handleSelectCustomer(searchResult.data!)}
                   >
                     Continue with{" "}
-                    {searchResult.data.name?.split(" ")[0] || "Customer"}
+                    {
+                      formatCustomerDisplayName(
+                        searchResult.data.name,
+                        searchResult.data.phone,
+                      ).split(" ")[0]
+                    }
                     <CheckCircle className="ml-2 size-5" />
                   </Button>
                 </div>
@@ -252,7 +317,7 @@ export function CustomerSelectionStep() {
           <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 pb-[120px]">
             <div className="bg-card rounded-[var(--radius-card)] p-[var(--spacing-md)] shadow-[var(--shadow-soft)]">
               <div className="flex items-center gap-[var(--spacing-s)] mb-[var(--spacing-sm)]">
-                <div className="w-[44px] h-[44px] rounded-full bg-surface flex items-center justify-center text-[20px]">
+                <div className="w-[44px] h-[44px] rounded-full bg-muted flex items-center justify-center text-[20px]">
                   ❔
                 </div>
                 <div>
@@ -282,7 +347,7 @@ export function CustomerSelectionStep() {
                           <FormControl>
                             <Input
                               placeholder="e.g. Rahul Kumar"
-                              className="h-[48px] px-[16px] bg-surface border-2 border-transparent focus:border-primary focus:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] rounded-[var(--radius-input)] text-[15px] font-medium outline-none transition-all"
+                              className="h-[48px] px-[16px] bg-muted border-2 border-transparent focus:border-primary focus:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] rounded-[var(--radius-input)] text-[15px] font-medium outline-none transition-all"
                               autoComplete="name"
                               {...field}
                             />

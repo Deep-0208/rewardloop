@@ -4,12 +4,12 @@ import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { BottomNavigation, type BottomNavItem } from "./bottom-navigation";
 import {
-  Home,
-  Receipt,
-  PlusCircle,
-  TrendingUp,
-  MoreHorizontal,
+  LayoutDashboard,
+  Plus,
+  BarChart3,
+  MoreVertical,
   AlertTriangle,
+  CreditCard,
 } from "@/components/icons";
 import { useBillingStore } from "@/stores/billing-store";
 import {
@@ -69,43 +69,43 @@ export function AppNavigation() {
     {
       key: "dashboard",
       label: "Home",
-      icon: Home,
+      icon: LayoutDashboard,
       active: pathname === "/dashboard",
       onClick: () => handleNavClick("/dashboard"),
     },
     {
       key: "transactions",
-      label: "History",
-      icon: Receipt,
+      label: "Sales",
+      icon: CreditCard,
       active: pathname.startsWith("/transactions"),
       onClick: () => handleNavClick("/transactions"),
     },
     {
       key: "visit",
       label: "",
-      icon: PlusCircle,
+      icon: Plus,
       custom: (
         <button
           type="button"
           onClick={() => handleNavClick("/visit")}
-          className="absolute -top-5 flex items-center justify-center w-[56px] h-[56px] bg-primary rounded-full text-primary-foreground border-4 border-background animate-fab-glow transition-all duration-150 active:scale-90 cursor-pointer hover:brightness-110"
+          className="absolute -top-6 flex items-center justify-center w-[64px] h-[64px] bg-primary rounded-full text-primary-foreground border-[6px] border-background shadow-[0_8px_30px_hsl(var(--primary)/0.5)] transition-all duration-150 active:scale-95 cursor-pointer hover:brightness-110"
           aria-label="New Visit"
         >
-          <PlusCircle className="size-6" strokeWidth={2.5} />
+          <Plus className="size-8" strokeWidth={2.5} />
         </button>
       ),
     },
     {
       key: "insights",
       label: "Insights",
-      icon: TrendingUp,
+      icon: BarChart3,
       active: pathname.startsWith("/insights"),
       onClick: () => handleNavClick("/insights"),
     },
     {
       key: "more",
       label: "More",
-      icon: MoreHorizontal,
+      icon: MoreVertical,
       active: pathname.startsWith("/more"),
       onClick: () => handleNavClick("/more"),
     },

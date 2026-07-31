@@ -9,14 +9,22 @@ export interface Customer {
   total_visits: number;
 }
 
-export const searchCustomerSchema = z.object({
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
-});
+export const searchCustomerSchema = z
+  .object({
+    phone: z
+      .string()
+      .regex(/^\+91\d{10}$/, "Phone number must be exactly 10 digits"),
+  })
+  .strict();
 
-export const createCustomerSchema = z.object({
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
-  name: z.string().optional(),
-});
+export const createCustomerSchema = z
+  .object({
+    phone: z
+      .string()
+      .regex(/^\+91\d{10}$/, "Phone number must be exactly 10 digits"),
+    name: z.string().max(100, "Name is too long").optional(),
+  })
+  .strict();
 
 export type SearchCustomerInput = z.infer<typeof searchCustomerSchema>;
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;

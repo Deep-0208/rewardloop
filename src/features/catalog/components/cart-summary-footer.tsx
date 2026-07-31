@@ -13,6 +13,7 @@
 import { ChevronUp } from "@/components/icons";
 import { formatCurrency } from "@/utils";
 import type { Paise } from "@/types";
+import { useIsOffline } from "@/components/layout/network-status-banner";
 
 interface CartSummaryFooterProps {
   readonly totalItems: number;
@@ -39,7 +40,9 @@ export function CartSummaryFooter({
   onContinue,
   className,
 }: CartSummaryFooterProps) {
+  const isOffline = useIsOffline();
   const isEmpty = totalItems === 0;
+  const isContinueDisabled = isEmpty || isOffline;
 
   return (
     <div
@@ -99,8 +102,8 @@ export function CartSummaryFooter({
             }}
           >
             {isEmpty
-              ? "No services selected"
-              : `${totalItems} ${totalItems === 1 ? "Service" : "Services"} Selected`}
+              ? "No items selected"
+              : `${totalItems} ${totalItems === 1 ? "Item" : "Items"} Selected`}
             {!isEmpty && (
               <ChevronUp
                 className="size-4 inline-block ml-1"
@@ -124,7 +127,7 @@ export function CartSummaryFooter({
         {/* Continue Button */}
         <button
           type="button"
-          disabled={isEmpty}
+          disabled={isContinueDisabled}
           onClick={onContinue}
           style={{
             position: "absolute",
@@ -143,13 +146,13 @@ export function CartSummaryFooter({
             gap: "8px",
             border: "none",
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            cursor: isEmpty ? "default" : "pointer",
-            opacity: isEmpty ? 0.5 : 1,
+            cursor: isContinueDisabled ? "default" : "pointer",
+            opacity: isContinueDisabled ? 0.5 : 1,
             width: "calc(100% - 32px)",
           }}
-          aria-label="Continue to Reward Calculation"
+          aria-label={isOffline ? "Offline" : "Continue to Reward Calculation"}
         >
-          Continue
+          {isOffline ? "Offline" : "Continue"}
           <svg
             width="18"
             height="18"

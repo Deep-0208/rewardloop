@@ -13,7 +13,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getDashboard } from "../services/dashboard-service";
 import type { GetDashboardDataResponse } from "../types";
 import { actionSuccess } from "@/lib/api";
-import { handleActionError } from "@/lib/errors";
+import { handleActionError, AppError } from "@/lib/errors";
+import { cookies } from "next/headers";
+import { validateRewardLoopSession } from "@/features/auth/utils/session-validator";
+import { SESSION_VERSION_COOKIE } from "@/features/auth/utils/session-cookie";
 
 /**
  * Server Action: Fetch dashboard data.
@@ -24,7 +27,17 @@ import { handleActionError } from "@/lib/errors";
  */
 export async function getDashboardData(): Promise<GetDashboardDataResponse> {
   try {
+    const cookieStore = await cookies();
     const supabase = await createClient();
+
+    const validation = await validateRewardLoopSession(
+      supabase,
+      cookieStore.get(SESSION_VERSION_COOKIE.name)?.value,
+    );
+    if (!validation.valid) {
+      throw new AppError("Authentication required.", "AUTH_REQUIRED");
+    }
+
     const data = await getDashboard(supabase);
     return actionSuccess(data);
   } catch (error) {

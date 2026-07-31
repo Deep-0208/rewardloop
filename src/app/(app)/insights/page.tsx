@@ -10,7 +10,7 @@ import {
   Receipt,
   Users,
   Gift,
-  TrendingUp,
+  Percent,
   Star,
   Scissors,
 } from "@/components/icons";
@@ -42,6 +42,15 @@ export default async function InsightsPage() {
 
   const { overview, topServices, topCustomers } = result.data;
 
+  const redemptionRate =
+    overview.totalRewardsEarnedPaise > 0
+      ? (
+          (overview.totalRewardsRedeemedPaise /
+            overview.totalRewardsEarnedPaise) *
+          100
+        ).toFixed(1) + "%"
+      : "0%";
+
   return (
     <ScreenContainer>
       <PageHeader title="Insights" subtitle="Business analytics" />
@@ -67,9 +76,9 @@ export default async function InsightsPage() {
           accentColor="bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
         />
         <StatCard
-          label="Avg. Transaction"
-          value={formatCurrency(overview.averageTransactionPaise)}
-          icon={TrendingUp}
+          label="Redemption Rate"
+          value={redemptionRate}
+          icon={Percent}
           accentColor="bg-primary/10 text-primary"
         />
       </div>
@@ -83,15 +92,15 @@ export default async function InsightsPage() {
           accentColor="bg-[var(--color-success)]/10 text-[var(--color-success)]"
         />
         <StatCard
-          label="Rewards Used"
+          label="Rewards Redeemed"
           value={formatCurrency(overview.totalRewardsRedeemedPaise)}
           icon={Star}
           accentColor="bg-[var(--color-destructive)]/10 text-[var(--color-destructive)]"
         />
       </div>
 
-      {/* Top Services */}
-      <Section title="Top Services" description="Most popular by quantity sold">
+      {/* Top Items */}
+      <Section title="Top Items" description="Most popular by quantity sold">
         {topServices.length === 0 ? (
           <EmptyState
             compact
@@ -102,10 +111,7 @@ export default async function InsightsPage() {
         ) : (
           <div className="flex flex-col gap-2">
             {topServices.map((service, index) => (
-              <Card
-                key={service.name}
-                className="border-0 shadow-[var(--shadow-card)]"
-              >
+              <Card key={service.name} className="">
                 <CardContent className="flex items-center gap-3 p-4">
                   <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary text-sm font-bold">
                     {index + 1}
@@ -141,10 +147,7 @@ export default async function InsightsPage() {
         ) : (
           <div className="flex flex-col gap-2">
             {topCustomers.map((customer, index) => (
-              <Card
-                key={customer.id}
-                className="border-0 shadow-[var(--shadow-card)]"
-              >
+              <Card key={customer.id} className="">
                 <CardContent className="flex items-center gap-3 p-4">
                   <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
                     {index + 1}

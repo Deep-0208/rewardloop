@@ -15,7 +15,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getActiveCatalog } from "../services/catalog-service";
 import type { GetCatalogItemsResponse } from "../types";
 import { actionSuccess } from "@/lib/api";
-import { handleActionError } from "@/lib/errors";
+import { handleActionError, AppError } from "@/lib/errors";
+import { cookies } from "next/headers";
+import { validateRewardLoopSession } from "@/features/auth/utils/session-validator";
+import { SESSION_VERSION_COOKIE } from "@/features/auth/utils/session-cookie";
 
 /**
  * Server Action: Fetch active catalog items.
@@ -28,7 +31,17 @@ export async function getCatalogItems(
   type?: "service" | "product",
 ): Promise<GetCatalogItemsResponse> {
   try {
+    const cookieStore = await cookies();
     const supabase = await createClient();
+
+    const validation = await validateRewardLoopSession(
+      supabase,
+      cookieStore.get(SESSION_VERSION_COOKIE.name)?.value,
+    );
+    if (!validation.valid) {
+      throw new AppError("Authentication required.", "AUTH_REQUIRED");
+    }
+
     const items = await getActiveCatalog(supabase, type);
     return actionSuccess(items);
   } catch (error) {

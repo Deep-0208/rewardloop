@@ -25,6 +25,8 @@ export interface AuthUser {
   readonly role: "owner" | "staff";
   readonly businessId: UUID | null;
   readonly sessionVersion: number;
+  readonly onboardingStatus: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+  readonly lastLogin: string | null;
 }
 
 export interface AuthBusiness {
@@ -45,4 +47,10 @@ export type LogoutResponse = ActionResult<void>;
 export type ValidateSessionResponse = ActionResult<{
   userId: string;
   phone: string;
+  businessId: string | null;
+  sessionVersion: number;
+  role: string;
+  accountStatus: string;
+  onboardingStatus: string;
+  lastLogin: string | null;
 }>;

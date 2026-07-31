@@ -34,16 +34,16 @@ export function StatCard({
   return (
     <Card
       className={cn(
-        "border-0 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-soft)] transition-all duration-150 active:scale-[0.97]",
+        "hover:shadow-[var(--shadow-soft)] transition-all duration-150 active:scale-[0.98]",
         className,
       )}
     >
       <CardContent className="flex items-start justify-between p-4">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-medium text-muted-foreground">
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
             {label}
           </span>
-          <span className="text-2xl font-bold tabular-nums text-foreground tracking-tight">
+          <span className="text-xl font-bold tabular-nums text-foreground tracking-tight">
             {value}
           </span>
           {trend ? <div className="mt-0.5">{trend}</div> : null}
@@ -51,11 +51,11 @@ export function StatCard({
         {Icon ? (
           <div
             className={cn(
-              "flex size-10 items-center justify-center rounded-xl",
+              "flex size-9 items-center justify-center rounded-[10px]",
               accentColor || "bg-primary/10 text-primary",
             )}
           >
-            <Icon className="size-5" />
+            <Icon className="size-[18px]" />
           </div>
         ) : null}
       </CardContent>

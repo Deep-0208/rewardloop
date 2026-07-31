@@ -14,6 +14,12 @@ export interface SessionValidationResult {
   valid: boolean;
   user?: User;
   reason?: "AUTH_REQUIRED" | "SESSION_REVOKED" | "ACCOUNT_SUSPENDED";
+  businessId?: string | null;
+  onboardingStatus?: string;
+  role?: string;
+  lastLogin?: string | null;
+  sessionVersion?: number;
+  accountStatus?: string;
 }
 
 /**
@@ -46,7 +52,9 @@ export async function validateRewardLoopSession(
   // 2. Fetch DB session_version and status using RLS
   const { data: dbUser } = await supabase
     .from("users")
-    .select("session_version, status")
+    .select(
+      "session_version, status, business_id, onboarding_status, role, last_login_at",
+    )
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
@@ -61,9 +69,19 @@ export async function validateRewardLoopSession(
   }
 
   const dbVersion = dbUser.session_version ?? 1;
-  if (dbVersion > cookieVersion) {
+  const MAX_CONCURRENT_SESSIONS = 3;
+  if (dbVersion - cookieVersion >= MAX_CONCURRENT_SESSIONS) {
     return { valid: false, reason: "SESSION_REVOKED" };
   }
 
-  return { valid: true, user };
+  return {
+    valid: true,
+    user,
+    businessId: dbUser.business_id,
+    onboardingStatus: dbUser.onboarding_status,
+    role: dbUser.role,
+    lastLogin: dbUser.last_login_at,
+    sessionVersion: dbUser.session_version,
+    accountStatus: dbUser.status,
+  };
 }

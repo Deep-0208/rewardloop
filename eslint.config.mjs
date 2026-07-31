@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "Documents/**",
     "Development/**",
     ".venv/**",
+    "claude-code-security-review/**",
+    "*.js",
   ]),
   {
     rules: {

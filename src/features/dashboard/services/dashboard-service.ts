@@ -136,10 +136,18 @@ async function fetchRecentTransactions(
  */
 async function fetchAggregates(
   supabase: SupabaseClient,
-): Promise<{ totalCustomers: number; lifetimeRevenuePaise: number }> {
-  const [customerResult, revenueResult] = await Promise.all([
-    supabase.from("customers").select("id", { count: "exact", head: true }),
+): Promise<{
+  totalCustomers: number;
+  lifetimeRevenuePaise: number;
+  businessName: string;
+}> {
+  const [customerResult, revenueResult, businessResult] = await Promise.all([
+    supabase
+      .from("customers")
+      .select("id", { count: "exact", head: true })
+      .gt("total_visits", 0),
     supabase.rpc("get_lifetime_revenue"),
+    supabase.from("businesses").select("name").limit(1).maybeSingle(),
   ]);
 
   if (customerResult.error) {
@@ -158,11 +166,19 @@ async function fetchAggregates(
     throw revenueResult.error;
   }
 
+  if (businessResult.error) {
+    log.error("Failed to get business name", {
+      code: businessResult.error.code,
+      message: businessResult.error.message,
+    });
+  }
+
   const lifetimeRevenuePaise = (revenueResult.data as number) ?? 0;
 
   return {
     totalCustomers: customerResult.count ?? 0,
     lifetimeRevenuePaise,
+    businessName: businessResult.data?.name ?? "My Business",
   };
 }
 
@@ -187,5 +203,6 @@ export async function getDashboard(
     recentTransactions,
     totalCustomers: aggregates.totalCustomers,
     lifetimeRevenuePaise: aggregates.lifetimeRevenuePaise,
+    businessName: aggregates.businessName,
   };
 }
