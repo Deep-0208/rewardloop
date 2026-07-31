@@ -1,4 +1,3 @@
-// @ts-nocheck
 /* eslint-disable no-console */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
@@ -19,12 +18,18 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const payload: SmsPayload = await req.json();
-    const { customerId, transactionId, finalPaidPaise, rewardEarnedPaise, rewardUsedPaise } = payload;
+    const {
+      customerId,
+      transactionId,
+      finalPaidPaise,
+      rewardEarnedPaise,
+      rewardUsedPaise,
+    } = payload;
 
     if (!customerId || !transactionId) {
       return new Response(
         JSON.stringify({ error: "Missing required transaction fields" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -36,11 +41,14 @@ serve(async (req) => {
       .single();
 
     if (customerError || !customer) {
-      console.error("[send-transaction-sms] Customer not found:", customerError);
-      return new Response(
-        JSON.stringify({ error: "Customer not found" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+      console.error(
+        "[send-transaction-sms] Customer not found:",
+        customerError,
       );
+      return new Response(JSON.stringify({ error: "Customer not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const finalAmountInr = (finalPaidPaise / 100).toFixed(2);
@@ -50,17 +58,21 @@ serve(async (req) => {
     const message = `Thank you for your visit! Paid: ₹${finalAmountInr}. Rewards Earned: ₹${earnedInr}. Rewards Used: ₹${usedInr}.`;
 
     // Simulated SMS Send via MSG91
-    console.log(`[send-transaction-sms] SMS sent to ${customer.phone}: "${message}"`);
+    console.log(
+      `[send-transaction-sms] SMS sent to ${customer.phone}: "${message}"`,
+    );
 
     return new Response(
       JSON.stringify({ success: true, messageId: `msg_${Date.now()}` }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("[send-transaction-sms] Unexpected error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Internal Server Error" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Internal Server Error",
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 });
