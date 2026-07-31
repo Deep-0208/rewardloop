@@ -19,8 +19,6 @@ import {
   type ChangeEvent,
 } from "react";
 
-const OTP_LENGTH = 6;
-
 interface OTPInputProps {
   /** Called when all digits are entered */
   onComplete?: (otp: string) => void;
@@ -31,6 +29,8 @@ interface OTPInputProps {
   disabled?: boolean;
   /** Auto-focus the first input on mount */
   autoFocus?: boolean;
+  /** Number of digits for the OTP (defaults to 6) */
+  length?: number;
   className?: string;
 }
 
@@ -41,10 +41,11 @@ export function OTPInput({
   error,
   disabled,
   autoFocus = true,
+  length = 6,
   className,
 }: OTPInputProps) {
   const [values, setValues] = useState<string[]>(
-    Array.from({ length: OTP_LENGTH }, () => ""),
+    Array.from({ length }, () => ""),
   );
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -54,11 +55,14 @@ export function OTPInput({
     }
   }, [autoFocus]);
 
-  const focusInput = useCallback((index: number) => {
-    if (index >= 0 && index < OTP_LENGTH) {
-      inputRefs.current[index]?.focus();
-    }
-  }, []);
+  const focusInput = useCallback(
+    (index: number) => {
+      if (index >= 0 && index < length) {
+        inputRefs.current[index]?.focus();
+      }
+    },
+    [length],
+  );
 
   const handleChange = useCallback(
     (index: number, e: ChangeEvent<HTMLInputElement>) => {
@@ -70,15 +74,15 @@ export function OTPInput({
       const otp = next.join("");
       onChange?.(otp);
 
-      if (digit && index < OTP_LENGTH - 1) {
+      if (digit && index < length - 1) {
         focusInput(index + 1);
       }
 
-      if (otp.length === OTP_LENGTH && next.every(Boolean)) {
+      if (otp.length === length && next.every(Boolean)) {
         onComplete?.(otp);
       }
     },
-    [values, onChange, onComplete, focusInput],
+    [values, onChange, onComplete, focusInput, length],
   );
 
   const handleKeyDown = useCallback(
@@ -109,25 +113,22 @@ export function OTPInput({
       const pasted = e.clipboardData
         .getData("text")
         .replace(/\D/g, "")
-        .slice(0, OTP_LENGTH);
+        .slice(0, length);
 
       if (!pasted) return;
 
-      const next = Array.from(
-        { length: OTP_LENGTH },
-        (_, i) => pasted[i] || "",
-      );
+      const next = Array.from({ length }, (_, i) => pasted[i] || "");
       setValues(next);
       onChange?.(next.join(""));
 
-      const lastFilledIndex = Math.min(pasted.length, OTP_LENGTH) - 1;
+      const lastFilledIndex = Math.min(pasted.length, length) - 1;
       focusInput(lastFilledIndex);
 
-      if (pasted.length === OTP_LENGTH) {
+      if (pasted.length === length) {
         onComplete?.(pasted);
       }
     },
-    [onChange, onComplete, focusInput],
+    [onChange, onComplete, focusInput, length],
   );
 
   return (
@@ -141,7 +142,7 @@ export function OTPInput({
         role="group"
         aria-label={label}
       >
-        {Array.from({ length: OTP_LENGTH }, (_, i) => (
+        {Array.from({ length }, (_, i) => (
           <input
             key={i}
             ref={(el) => {
@@ -153,17 +154,17 @@ export function OTPInput({
             maxLength={1}
             value={values[i]}
             disabled={disabled}
-            aria-label={`Digit ${i + 1} of ${OTP_LENGTH}`}
+            aria-label={`Digit ${i + 1} of ${length}`}
             aria-invalid={error ? true : undefined}
             onChange={(e) => handleChange(i, e)}
             onKeyDown={(e) => handleKeyDown(i, e)}
             onPaste={i === 0 ? handlePaste : undefined}
             className={cn(
-              "size-14 rounded-2xl border border-input bg-transparent text-center text-xl font-semibold transition-colors outline-none",
-              "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+              "w-12 h-14 sm:w-14 sm:h-16 rounded-[16px] border border-border/60 bg-muted/30 text-center text-[24px] font-bold text-foreground transition-all outline-none",
+              "focus-visible:border-primary focus-visible:bg-primary/5 focus-visible:ring-[3px] focus-visible:ring-primary/15 focus-visible:shadow-sm",
               "disabled:pointer-events-none disabled:opacity-50",
               error &&
-                "border-destructive text-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 animate-shake",
+                "border-destructive text-destructive bg-destructive/5 focus-visible:border-destructive focus-visible:ring-destructive/20 animate-shake",
             )}
           />
         ))}

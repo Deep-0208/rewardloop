@@ -2,6 +2,7 @@ import "server-only";
 
 import { compare, hash } from "bcryptjs";
 import { randomInt } from "node:crypto";
+import { headers } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AppError } from "@/lib/errors";
@@ -36,18 +37,27 @@ export async function sendRewardOtp(
   rewardAmountPaise: number,
 ): Promise<{ expiresAt: string }> {
   const adminSupabase = createAdminClient();
+  const headersList = await headers();
+  const ip =
+    headersList.get("x-forwarded-for") ??
+    headersList.get("x-real-ip") ??
+    "127.0.0.1";
+
   const { data: allowed, error: rateError } = await adminSupabase.rpc(
     "check_and_update_otp_cooldown",
     {
       p_phone: context.customer.phone,
+      p_ip: ip,
+      p_business_id: context.businessId,
       p_cooldown_seconds: OTP_COOLDOWN_SECONDS,
-      p_max_requests: OTP_MAX_REQUESTS,
-      p_window_minutes: OTP_WINDOW_MINUTES,
     },
   );
   if (rateError) {
     log.error("Reward OTP cooldown check failed", { code: rateError.code });
-    throw new AppError("Unable to send OTP. Please try again.", "SERVER_ERROR");
+    throw new AppError(
+      `Rate Error: ${rateError.message || rateError.code}`,
+      "SERVER_ERROR",
+    );
   }
   if (!allowed) {
     throw new AppError(
@@ -56,13 +66,8 @@ export async function sendRewardOtp(
     );
   }
 
-  let otp = randomInt(100000, 1_000_000).toString();
-  if (
-    process.env.NODE_ENV !== "production" &&
-    context.customer.phone === "9023833730"
-  ) {
-    otp = "123456";
-  }
+  // Generate a 4-digit OTP for faster, frictionless reward redemption
+  const otp = randomInt(1000, 10000).toString();
 
   const expiresAt = new Date(
     Date.now() + OTP_TTL_SECONDS * 1_000,
@@ -84,35 +89,62 @@ export async function sendRewardOtp(
     .single();
   if (insertError || !request?.id) {
     log.error("Reward OTP request insert failed", { code: insertError?.code });
-    throw new AppError("Unable to send OTP. Please try again.", "SERVER_ERROR");
+    throw new AppError(
+      `Insert Error: ${insertError?.message || "No ID returned"}`,
+      "SERVER_ERROR",
+    );
   }
 
-  if (
-    process.env.NODE_ENV !== "production" &&
-    context.customer.phone === "9023833730"
-  ) {
-    // Skip MSG91 delivery for test phone number
-    return { expiresAt };
+  const msg91AuthKey = process.env.MSG91_AUTH_KEY;
+  const msg91TemplateId = process.env.MSG91_TEMPLATE_ID;
+
+  if (!msg91AuthKey || !msg91TemplateId) {
+    log.error("Missing MSG91 credentials");
+    throw new AppError("SMS service is not configured.", "SERVER_ERROR");
   }
 
-  const { error: deliveryError } = await adminSupabase.functions.invoke(
-    "send-otp",
-    {
-      body: {
-        phone: context.customer.phone,
-        otp,
-        templateId: process.env.MSG91_OTP_TEMPLATE_ID,
-        purpose: "reward_redemption",
+  const msg91Mobile = context.customer.phone.replace("+", "");
+  const msg91Url = "https://control.msg91.com/api/v5/otp";
+  const amountInRupees = (rewardAmountPaise / 100).toString();
+
+  try {
+    const response = await fetch(msg91Url, {
+      method: "POST",
+      headers: {
+        authkey: msg91AuthKey,
+        "Content-Type": "application/json",
       },
-    },
-  );
-  if (deliveryError) {
+      body: JSON.stringify({
+        template_id: msg91TemplateId,
+        mobile: msg91Mobile,
+        otp: otp,
+        amount: amountInRupees,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      log.error("Reward OTP delivery failed via MSG91", { errorText });
+      throw new Error(errorText);
+    }
+
+    // MSG91 returns 200 OK even for some errors, the payload has a type "error" or "success"
+    const responseData = await response.json().catch(() => ({}));
+    if (responseData.type === "error") {
+      log.error("Reward OTP delivery failed via MSG91 API", { responseData });
+      throw new Error(responseData.message || "MSG91 API Error");
+    }
+  } catch (deliveryError: unknown) {
     await adminSupabase
       .from("otp_requests")
       .update({ invalidated: true })
       .eq("id", request.id);
-    log.error("Reward OTP delivery failed", { message: deliveryError.message });
-    throw new AppError("Unable to send OTP. Please try again.", "SERVER_ERROR");
+    const message =
+      deliveryError instanceof Error
+        ? deliveryError.message
+        : String(deliveryError);
+    log.error("Reward OTP delivery failed", { message });
+    throw new AppError(`Twilio Error: ${message}`, "SERVER_ERROR");
   }
 
   return { expiresAt };

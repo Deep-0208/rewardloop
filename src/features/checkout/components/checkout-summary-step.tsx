@@ -241,6 +241,7 @@ export function CheckoutSummaryStep() {
         });
         if (!result.success) {
           setOtpError(result.error);
+          toast.error(result.error);
           return;
         }
         setOtpState("sent");
@@ -250,6 +251,53 @@ export function CheckoutSummaryStep() {
       });
     },
     [customer, setOtpVerifiedToken, startOtpTransition, summary],
+  );
+
+  const handleCompleteVisit = useCallback(
+    async (overrideToken?: string | React.MouseEvent) => {
+      if (!requestInput || !summary) return;
+      setCompletionError(null);
+      setIsCompleting(true);
+
+      const tokenToUse =
+        typeof overrideToken === "string" ? overrideToken : otpVerifiedToken;
+
+      const result = await completeVisit({
+        idempotencyKey,
+        customerId: requestInput.customerId,
+        items: requestInput.items,
+        rewardAppliedPaise: summary.rewardUsedPaise,
+        paymentMethod: summary.finalPayablePaise === 0 ? "none" : paymentMethod,
+        otpVerifiedToken: tokenToUse,
+      });
+      setIsCompleting(false);
+      if (!result.success) {
+        setCompletionError(result.error);
+        return;
+      }
+      posthog.capture("visit_completed", {
+        subtotal_paise: result.data.subtotalPaise,
+        reward_used_paise: result.data.rewardUsedPaise,
+        reward_earned_paise: result.data.rewardEarnedPaise,
+        final_paid_paise: result.data.finalPaidPaise,
+        payment_method:
+          summary.finalPayablePaise === 0 ? "none" : paymentMethod,
+        items_count: requestInput.items.length,
+        is_duplicate: result.data.duplicate,
+      });
+      toast.success("✓ Visit Completed", { duration: 1_000 });
+      window.setTimeout(() => {
+        reset();
+      }, 1_000);
+    },
+    [
+      idempotencyKey,
+      otpVerifiedToken,
+      paymentMethod,
+      requestInput,
+      reset,
+      summary,
+    ],
   );
 
   const handleVerifyOtp = useCallback(
@@ -265,49 +313,13 @@ export function CheckoutSummaryStep() {
         }
         setOtpVerifiedToken(result.data.verifiedToken);
         setOtpState("verified");
+
+        // Auto-complete immediately after verification
+        void handleCompleteVisit(result.data.verifiedToken);
       });
     },
-    [customer, setOtpVerifiedToken, startOtpTransition],
+    [customer, setOtpVerifiedToken, startOtpTransition, handleCompleteVisit],
   );
-
-  const handleCompleteVisit = useCallback(async () => {
-    if (!requestInput || !summary) return;
-    setCompletionError(null);
-    setIsCompleting(true);
-    const result = await completeVisit({
-      idempotencyKey,
-      customerId: requestInput.customerId,
-      items: requestInput.items,
-      rewardAppliedPaise: summary.rewardUsedPaise,
-      paymentMethod: summary.finalPayablePaise === 0 ? "none" : paymentMethod,
-      otpVerifiedToken,
-    });
-    setIsCompleting(false);
-    if (!result.success) {
-      setCompletionError(result.error);
-      return;
-    }
-    posthog.capture("visit_completed", {
-      subtotal_paise: result.data.subtotalPaise,
-      reward_used_paise: result.data.rewardUsedPaise,
-      reward_earned_paise: result.data.rewardEarnedPaise,
-      final_paid_paise: result.data.finalPaidPaise,
-      payment_method: summary.finalPayablePaise === 0 ? "none" : paymentMethod,
-      items_count: requestInput.items.length,
-      is_duplicate: result.data.duplicate,
-    });
-    toast.success("✓ Visit Completed", { duration: 1_000 });
-    window.setTimeout(() => {
-      reset();
-    }, 1_000);
-  }, [
-    idempotencyKey,
-    otpVerifiedToken,
-    paymentMethod,
-    requestInput,
-    reset,
-    summary,
-  ]);
 
   if (!customer || items.length === 0)
     return (
@@ -374,6 +386,7 @@ export function CheckoutSummaryStep() {
   const products = summary.items.filter((item) => item.type === "product");
   const effectivePaymentMethod: VisitPaymentMethod =
     summary.finalPayablePaise === 0 ? "none" : paymentMethod;
+  const isDebouncing = requestedRewardPaise !== summary.rewardUsedPaise;
 
   return (
     <div className="flex flex-1 flex-col pb-[120px] bg-muted/10 relative">
@@ -452,23 +465,20 @@ export function CheckoutSummaryStep() {
         ) : null}
 
         {/* Rewards Card */}
-        <div className="bg-card rounded-[var(--radius-card)] p-[var(--spacing-md)] mb-[var(--spacing-sm)] shadow-[var(--shadow-soft)] relative overflow-hidden">
-          {/* Card Accent */}
-          <div className="absolute top-0 left-0 right-0 h-[4px] bg-emerald-500/80" />
-
-          <div className="flex flex-col gap-[var(--spacing-md)] pt-[4px]">
+        <div className="bg-card rounded-[var(--radius-card)] p-[var(--spacing-md)] mb-[var(--spacing-sm)] shadow-sm border border-border/40 relative overflow-hidden">
+          <div className="flex flex-col gap-[var(--spacing-md)]">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-[var(--spacing-s)]">
-                <div className="w-[44px] h-[44px] rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-                  <Wallet className="size-5" />
+                <div className="w-[36px] h-[36px] rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                  <Wallet className="size-4" />
                 </div>
                 <div>
-                  <p className="font-semibold text-[16px] text-[var(--color-text-primary)]">
+                  <p className="font-semibold text-[15px] text-[var(--color-text-primary)]">
                     Available Rewards
                   </p>
                   <p className="text-[12px] text-[var(--color-text-secondary)] mt-[2px]">
-                    Balance: {formatCurrency(summary.walletBalancePaise)} • Max
-                    Redeem: {formatCurrency(summary.reward.maxRedeemPaise)}
+                    Balance: {formatCurrency(summary.walletBalancePaise)} • Max:{" "}
+                    {formatCurrency(summary.reward.maxRedeemPaise)}
                   </p>
                 </div>
               </div>
@@ -477,134 +487,129 @@ export function CheckoutSummaryStep() {
             {summary.walletBalancePaise === 0 ? (
               <EmptyState
                 compact
-                icon={<Wallet className="size-6 text-muted-foreground" />}
+                icon={<Wallet className="size-5 text-muted-foreground" />}
                 title="Customer has no rewards"
                 description="They will earn rewards from this visit after payment."
-                className="rounded-xl border bg-card"
+                className="rounded-xl border bg-card/50"
               />
             ) : (
-              <div className="relative">
-                <div className="absolute left-[16px] top-[26px] -translate-y-1/2 text-[var(--color-text-tertiary)] font-bold text-[24px]">
-                  ₹
-                </div>
-                <input
-                  id="reward-amount"
-                  type="number"
-                  inputMode="decimal"
-                  placeholder="0"
-                  value={rewardInput}
-                  onChange={(event) =>
-                    setRewardInput(sanitizeRupeeInput(event.target.value))
-                  }
-                  onBlur={handleBlur}
-                  onKeyDown={(e) => {
-                    if (e.key === "-" || e.key === "e" || e.key === "+") {
-                      e.preventDefault();
+              <div className="flex flex-col gap-3">
+                <div className="relative group">
+                  <div className="absolute left-[16px] top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-[16px]">
+                    ₹
+                  </div>
+                  <input
+                    id="reward-amount"
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0"
+                    value={rewardInput}
+                    onChange={(event) =>
+                      setRewardInput(sanitizeRupeeInput(event.target.value))
                     }
-                  }}
-                  className="w-full h-[72px] pl-[48px] pr-[16px] bg-card border-2 border-border/60 focus:border-primary focus:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] rounded-[var(--radius-input)] text-[32px] font-bold text-[var(--color-text-primary)] outline-none transition-all tabular-nums shadow-[var(--shadow-soft)]"
-                />
-                <p
-                  id="reward-help"
-                  aria-live="polite"
-                  className={
-                    inputError
-                      ? "mt-[8px] text-[12px] text-destructive font-medium"
-                      : "mt-[8px] text-[12px] text-[var(--color-text-tertiary)]"
-                  }
-                >
-                  {inputError ??
-                    "Tap a percentage or enter an amount manually."}
-                </p>
+                    onBlur={handleBlur}
+                    className="w-full h-[56px] pl-[36px] pr-[16px] bg-muted/30 border border-border/60 hover:border-border focus:border-primary focus:ring-[3px] focus:ring-primary/10 rounded-[var(--radius-input)] text-[24px] font-semibold text-right text-[var(--color-text-primary)] outline-none transition-all tabular-nums"
+                  />
+                </div>
+
+                {inputError && (
+                  <p className="text-[12px] text-destructive font-medium px-1">
+                    {inputError}
+                  </p>
+                )}
+
+                <div className="flex items-center bg-muted/50 p-1 rounded-[16px] border border-border/40 gap-1">
+                  {[0.25, 0.5, 0.75, 1.0].map((ratio) => {
+                    const chipPaise = Math.floor(
+                      summary.reward.maxRedeemPaise * ratio,
+                    );
+                    const chipRupees = (chipPaise / 100).toString();
+                    const label = ratio === 1.0 ? "Max" : `${ratio * 100}%`;
+                    const isActive =
+                      rewardInput === chipRupees &&
+                      rewardInput !== "" &&
+                      rewardInput !== "0";
+                    return (
+                      <button
+                        key={ratio}
+                        type="button"
+                        className={`h-[36px] flex-1 rounded-[12px] text-[13px] font-semibold transition-all ${isActive ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                        onClick={() => setRewardInput(chipRupees)}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
-
-            {summary.walletBalancePaise > 0 && (
-              <div className="flex items-center gap-2">
-                {[0.25, 0.5, 0.75, 1.0].map((ratio) => {
-                  const chipPaise = Math.floor(
-                    summary.reward.maxRedeemPaise * ratio,
-                  );
-                  const chipRupees = (chipPaise / 100).toString();
-                  const label = `${ratio * 100}%`;
-                  return (
-                    <Button
-                      key={ratio}
-                      type="button"
-                      variant="outline"
-                      className="h-[40px] flex-1 rounded-[12px] text-[13px] font-semibold border-border/60 hover:bg-muted"
-                      onClick={() => setRewardInput(chipRupees)}
-                    >
-                      {label}
-                    </Button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Reward Earned Preview */}
-          <div className="mt-[var(--spacing-md)] pt-[var(--spacing-sm)] border-t border-border/20 flex justify-between items-center">
-            <div>
-              <p className="text-[13px] text-[var(--color-text-secondary)] font-medium">
-                Earn Today
-              </p>
-              <p className="text-[11px] text-[var(--color-text-tertiary)]">
-                {summary.reward.rewardPercentage}% of Final Pay
-              </p>
-            </div>
-            <p className="font-bold text-[16px] text-success bg-[var(--color-success-light)] px-[12px] py-[6px] rounded-[12px] flex items-center gap-[4px]">
-              +{formatCurrency(summary.rewardEarnedPaise)}
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </p>
           </div>
         </div>
 
         {/* Bill Summary Card */}
-        <div className="bg-card rounded-[var(--radius-card)] p-[var(--spacing-md)] mb-[var(--spacing-sm)] flex flex-col items-center justify-center shadow-[var(--shadow-soft)] border border-border/40">
-          <p className="text-[11px] text-[var(--color-text-secondary)] uppercase tracking-widest font-semibold mb-1">
-            FINAL PAY
-          </p>
-          <h2 className="text-[40px] font-bold text-primary leading-none tracking-tight flex items-start">
-            <span className="text-[20px] mt-1 mr-0.5">₹</span>
-            {(summary.finalPayablePaise / 100).toFixed(0)}
-          </h2>
-          {summary.rewardUsedPaise > 0 && (
-            <p className="text-[13px] text-[var(--color-text-tertiary)] font-medium mt-3">
-              Original Bill {formatCurrency(summary.subtotalPaise)} •{" "}
-              <span className="text-success font-semibold">
-                Saved {formatCurrency(summary.rewardUsedPaise)}
+        <div className="bg-card rounded-[var(--radius-card)] p-[var(--spacing-md)] mb-[var(--spacing-sm)] flex flex-col shadow-sm border border-border/40">
+          <div className="flex flex-col gap-2 border-b border-border/40 pb-4 mb-4">
+            <div className="flex justify-between items-center text-[14px]">
+              <span className="text-muted-foreground">Original Bill</span>
+              <span className="font-medium text-foreground">
+                {formatCurrency(summary.subtotalPaise)}
               </span>
+            </div>
+            {summary.rewardUsedPaise > 0 && (
+              <div className="flex justify-between items-center text-[14px]">
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                  Reward Redeemed
+                </span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                  -{formatCurrency(summary.rewardUsedPaise)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-[12px] text-muted-foreground uppercase tracking-widest font-semibold">
+              Final Pay
             </p>
-          )}
+            <h2 className="text-[36px] font-bold text-primary leading-none tracking-tight flex items-start">
+              <span className="text-[18px] mt-1 mr-0.5 font-medium text-primary/70">
+                ₹
+              </span>
+              {(summary.finalPayablePaise / 100).toFixed(0)}
+            </h2>
+          </div>
+
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex justify-between items-center text-[14px]">
+            <span className="text-emerald-700 dark:text-emerald-300 flex items-center gap-2 font-medium">
+              <Wallet className="size-4" />
+              Earn Today{" "}
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded-full font-bold">
+                {summary.reward.rewardPercentage}%
+              </span>
+            </span>
+            <span className="font-bold text-emerald-700 dark:text-emerald-300">
+              +{formatCurrency(summary.rewardEarnedPaise)}
+            </span>
+          </div>
         </div>
 
         {summary.finalPayablePaise > 0 ? (
           <div className="mb-6 mt-4">
-            <p className="text-[12px] text-muted-foreground font-semibold uppercase tracking-wider mb-3 pl-1">
+            <p className="text-[12px] text-muted-foreground font-semibold uppercase tracking-wider mb-2 pl-1">
               Payment Method
             </p>
-            <div className="flex bg-muted rounded-[24px] p-[4px] gap-[4px] border border-border/20">
+            <div className="flex bg-muted/50 rounded-[16px] p-1 gap-1 border border-border/40">
               <button
                 type="button"
                 onClick={() => setPaymentMethod("cash")}
                 className={`
-                  flex-1 flex items-center justify-center gap-2 h-[56px] rounded-[var(--radius-button)] transition-all cursor-pointer
-                  ${effectivePaymentMethod === "cash" ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgba(var(--primary),0.25)] font-semibold" : "text-[var(--color-text-secondary)] hover:bg-black/5 dark:hover:bg-white/5"}
+                  flex-1 flex items-center justify-center gap-2 h-[44px] rounded-[12px] transition-all cursor-pointer
+                  ${effectivePaymentMethod === "cash" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}
                 `}
               >
                 <svg
-                  width="20"
-                  height="20"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -614,19 +619,19 @@ export function CheckoutSummaryStep() {
                   <circle cx="12" cy="12" r="2" />
                   <path d="M6 12h.01M18 12h.01" />
                 </svg>
-                <span className="text-[15px]">Cash</span>
+                <span className="text-[14px]">Cash</span>
               </button>
               <button
                 type="button"
                 onClick={() => setPaymentMethod("online")}
                 className={`
-                  flex-1 flex items-center justify-center gap-2 h-[56px] rounded-[var(--radius-button)] transition-all cursor-pointer
-                  ${effectivePaymentMethod === "online" ? "bg-primary text-primary-foreground shadow-[0_4px_16px_rgba(var(--primary),0.25)] font-semibold" : "text-[var(--color-text-secondary)] hover:bg-black/5 dark:hover:bg-white/5"}
+                  flex-1 flex items-center justify-center gap-2 h-[44px] rounded-[12px] transition-all cursor-pointer
+                  ${effectivePaymentMethod === "online" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}
                 `}
               >
                 <svg
-                  width="18"
-                  height="18"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -663,7 +668,7 @@ export function CheckoutSummaryStep() {
       </main>
 
       <div
-        className="fixed bottom-0 left-0 right-0 p-[var(--spacing-md)] pb-[calc(var(--spacing-md)+env(safe-area-inset-bottom,0px))] bg-background/90 backdrop-blur-xl border-t border-border/20 shadow-[var(--shadow-soft)] z-[60]"
+        className="fixed bottom-0 left-0 right-0 p-[var(--spacing-md)] pb-[calc(var(--spacing-md)+env(safe-area-inset-bottom,0px))] bg-background/80 backdrop-blur-2xl border-t border-border/40 shadow-[0_-8px_32px_rgba(0,0,0,0.04)] z-[60]"
         style={{ width: "100%", left: 0, right: 0, bottom: 0 }}
       >
         <div
@@ -679,6 +684,8 @@ export function CheckoutSummaryStep() {
             disabled={
               isCompleting ||
               isOtpPending ||
+              isDebouncing ||
+              isLoading ||
               (summary.requiresOtp && otpState === "sent" && !otpVerifiedToken)
             }
             onClick={
@@ -712,7 +719,11 @@ export function CheckoutSummaryStep() {
                   ></path>
                 </svg>
                 <span>
-                  {isOtpPending ? "Sending OTP..." : "Completing Visit..."}
+                  {isCompleting
+                    ? "Completing Visit..."
+                    : isOtpPending && otpState === "sent"
+                      ? "Verifying OTP..."
+                      : "Sending OTP..."}
                 </span>
               </>
             ) : summary.requiresOtp && !otpVerifiedToken ? (
@@ -726,12 +737,12 @@ export function CheckoutSummaryStep() {
 
       {/* Inline OTP Bottom Sheet Overlay */}
       {summary.requiresOtp && otpState === "sent" && !otpVerifiedToken && (
-        <div className="fixed inset-0 z-[70] flex flex-col justify-end">
+        <div className="fixed inset-0 z-[70] flex flex-col justify-end items-center">
           <div
-            className="absolute inset-0 bg-background/60 backdrop-blur-md animate-in fade-in duration-300"
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300"
             onClick={() => setOtpState("idle")}
           />
-          <div className="relative bg-card w-full rounded-t-[32px] p-[var(--spacing-md)] pt-6 pb-[calc(32px+env(safe-area-inset-bottom,0px))] animate-in slide-in-from-bottom-full duration-300 shadow-[var(--shadow-hero)] border-t border-border/40">
+          <div className="relative bg-card w-full max-w-[512px] rounded-t-[32px] p-[var(--spacing-md)] pt-6 pb-[calc(32px+env(safe-area-inset-bottom,0px))] animate-in slide-in-from-bottom-full duration-300 shadow-[0_-8px_32px_rgba(0,0,0,0.08)] border-t border-border/40">
             <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-[var(--spacing-md)]" />
 
             <h3 className="text-[22px] font-bold text-[var(--color-text-primary)] mb-1 text-center">
@@ -744,6 +755,7 @@ export function CheckoutSummaryStep() {
             <div className="mb-8">
               <OTPInput
                 key={otpResetKey}
+                length={4}
                 label=""
                 error={otpError ?? undefined}
                 disabled={isOtpPending}

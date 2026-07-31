@@ -11,6 +11,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -127,11 +128,12 @@ export default function LoginForm({
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <p className="text-[13px] text-muted-foreground leading-relaxed">
+                      <FormLabel className="text-[13px] font-normal text-muted-foreground leading-relaxed cursor-pointer">
                         I agree to the{" "}
                         <a
                           href="/terms"
                           className="underline hover:text-foreground"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           Terms of Service
                         </a>{" "}
@@ -139,11 +141,12 @@ export default function LoginForm({
                         <a
                           href="/privacy"
                           className="underline hover:text-foreground"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           Privacy Policy
                         </a>
                         .
-                      </p>
+                      </FormLabel>
                       <FormMessage />
                     </div>
                   </FormItem>

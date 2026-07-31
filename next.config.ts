@@ -7,7 +7,9 @@ const cspHeader = `
   script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""};
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data:;
-  font-src 'self';
+  font-src 'self' https://browser.sentry-cdn.com;
+  connect-src 'self' https://us.i.posthog.com https://us-assets.i.posthog.com https://*.ingest.us.sentry.io wss://*.supabase.co https://*.supabase.co;
+  worker-src 'self' blob:;
   object-src 'none';
   base-uri 'self';
   form-action 'self';

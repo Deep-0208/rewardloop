@@ -39,8 +39,8 @@ function assertSafeNonNegativeInteger(value: number, name: string): void {
 }
 
 function assertPercentage(value: number, name: string): void {
-  if (!Number.isInteger(value) || value < 1 || value > 50) {
-    throw new RangeError(`${name} must be an integer between 1 and 50.`);
+  if (!Number.isInteger(value) || value < 1 || value > 100) {
+    throw new RangeError(`${name} must be an integer between 1 and 100.`);
   }
 }
 

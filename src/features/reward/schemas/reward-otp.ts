@@ -10,5 +10,5 @@ export const sendRewardOtpSchema = z.object({
 
 export const verifyRewardOtpSchema = z.object({
   customerId: z.string().uuid(),
-  otp: z.string().regex(/^\d{6}$/, "Enter the 6-digit OTP."),
+  otp: z.string().regex(/^\d{4}$/, "Enter the 4-digit OTP."),
 });
