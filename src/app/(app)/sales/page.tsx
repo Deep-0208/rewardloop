@@ -22,11 +22,11 @@ export default async function TransactionsPage() {
   if (!result.success) {
     return (
       <ScreenContainer>
-        <PageHeader title="Visit History" />
+        <PageHeader title="Sales History" />
         <Section>
           <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
             <p className="text-sm text-muted-foreground">
-              Unable to load transactions. Please try again.
+              Unable to load sales. Please try again.
             </p>
           </div>
         </Section>
@@ -39,15 +39,15 @@ export default async function TransactionsPage() {
   return (
     <ScreenContainer>
       <PageHeader
-        title="Visit History"
-        subtitle={`${transactions.length} transaction${transactions.length !== 1 ? "s" : ""}`}
+        title="Sales History"
+        subtitle={`${transactions.length} sale${transactions.length !== 1 ? "s" : ""}`}
       />
 
       {transactions.length === 0 ? (
         <EmptyState
           icon={<Receipt className="size-8 text-primary" />}
-          title="No Visit History Yet"
-          description="Completed customer transactions, reward earnings, and redemptions will appear here."
+          title="No Sales History Yet"
+          description="Completed sales, reward earnings, and redemptions will appear here."
           action={
             <Link href="/visit">
               <Button size="touch">

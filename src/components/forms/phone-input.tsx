@@ -78,6 +78,9 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
                   : undefined
             }
             {...props}
+            onChange={(e) => {
+              props.onChange?.(e);
+            }}
           />
         </div>
 

@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/page-header";
 import { Section } from "@/components/section";
 import { getSettings } from "@/features/settings/actions";
 import { ProfileForm } from "./profile-form";
+import { ErrorState } from "@/components/feedback/error-state";
 
 export default async function ProfilePage() {
   const result = await getSettings();
@@ -11,13 +12,10 @@ export default async function ProfilePage() {
     return (
       <ScreenContainer>
         <PageHeader title="Business Profile" />
-        <Section>
-          <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              Unable to load profile. Please try again.
-            </p>
-          </div>
-        </Section>
+        <ErrorState
+          title="Unable to load profile"
+          description="Please check your connection and try again."
+        />
       </ScreenContainer>
     );
   }
@@ -26,9 +24,13 @@ export default async function ProfilePage() {
 
   return (
     <ScreenContainer>
-      <PageHeader title="Business Profile" />
+      <PageHeader 
+        title="Business Profile" 
+        subtitle="Manage your business details" 
+        backTo="/more" 
+      />
       <Section>
-        <ProfileForm initialName={profile.name} />
+        <ProfileForm initialName={profile.name} businessType={profile.businessType} />
       </Section>
     </ScreenContainer>
   );

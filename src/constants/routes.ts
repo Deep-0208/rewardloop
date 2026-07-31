@@ -20,8 +20,8 @@ export const ROUTES = {
 
   /* ─── App (main) ────────────────────────────────────────────────────────── */
   DASHBOARD: "/dashboard",
-  TRANSACTIONS: "/transactions",
-  TRANSACTION_DETAIL: (id: string) => `/transactions/${id}` as const,
+  SALES: "/sales",
+  SALE_DETAIL: (id: string) => `/sales/${id}` as const,
   INSIGHTS: "/insights",
   MORE: "/more",
   VISIT: "/visit",

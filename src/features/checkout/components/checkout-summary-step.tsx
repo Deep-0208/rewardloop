@@ -12,16 +12,27 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { OTPInput } from "@/components/forms/otp-input";
 import { EmptyState, ErrorState } from "@/components/feedback";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/page-header";
 import {
   AlertCircle,
   CheckCircle,
+  IndianRupee,
   Receipt,
   User,
   Tag,
   Wallet,
+  Banknote,
+  Smartphone,
 } from "@/components/icons";
 import { ROUTES } from "@/constants/routes";
 import { formatCurrency } from "@/utils";
@@ -48,6 +59,7 @@ import type {
   CheckoutSummaryResponse,
   VisitPaymentMethod,
 } from "../types";
+import { VisitSuccessScreen } from "./visit-success-screen";
 
 function CheckoutLine({ item }: { readonly item: CheckoutLineItem }) {
   return (
@@ -119,6 +131,7 @@ export function CheckoutSummaryStep() {
   const [resendSeconds, setResendSeconds] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [completedPaymentMethod, setCompletedPaymentMethod] = useState<string | null>(null);
   const [isOtpPending, startOtpTransition] = useTransition();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 
@@ -285,10 +298,11 @@ export function CheckoutSummaryStep() {
         items_count: requestInput.items.length,
         is_duplicate: result.data.duplicate,
       });
-      toast.success("✓ Visit Completed", { duration: 1_000 });
-      window.setTimeout(() => {
-        reset();
-      }, 1_000);
+      toast.success("✓ Visit Completed", { duration: 3_000 });
+      setCompletedPaymentMethod(
+        summary.finalPayablePaise === 0 ? "none" : paymentMethod,
+      );
+      reset();
     },
     [
       idempotencyKey,
@@ -320,6 +334,16 @@ export function CheckoutSummaryStep() {
     },
     [customer, setOtpVerifiedToken, startOtpTransition, handleCompleteVisit],
   );
+
+  if (completedPaymentMethod !== null && summary && customer)
+    return (
+      <VisitSuccessScreen
+        customerName={customer.name || "Customer"}
+        customerPhone={customer.phone}
+        summary={summary}
+        paymentMethod={completedPaymentMethod}
+      />
+    );
 
   if (!customer || items.length === 0)
     return (
@@ -427,7 +451,7 @@ export function CheckoutSummaryStep() {
             <CardContent className="p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h2 className="flex items-center gap-2 font-medium">
-                  <Receipt className="size-4 text-primary" aria-hidden="true" />
+                  <IndianRupee className="size-4 text-primary" aria-hidden="true" />
                   Selected services
                 </h2>
                 <span className="text-sm font-semibold tabular-nums">
@@ -495,7 +519,10 @@ export function CheckoutSummaryStep() {
             ) : (
               <div className="flex flex-col gap-3">
                 <div className="relative group">
-                  <div className="absolute left-[16px] top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-[16px]">
+                  <Label htmlFor="reward-amount" className="sr-only">
+                    Reward amount in rupees
+                  </Label>
+                  <div className="absolute left-[16px] top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-[16px]" aria-hidden="true">
                     ₹
                   </div>
                   <input
@@ -503,17 +530,26 @@ export function CheckoutSummaryStep() {
                     type="text"
                     inputMode="decimal"
                     placeholder="0"
+                    aria-label="Reward amount in rupees"
+                    aria-describedby={inputError ? "reward-amount-error" : undefined}
+                    aria-invalid={inputError ? true : undefined}
                     value={rewardInput}
-                    onChange={(event) =>
-                      setRewardInput(sanitizeRupeeInput(event.target.value))
-                    }
+                    onChange={(event) => {
+                      let val = event.target.value;
+                      if (val.length > 1 && val.startsWith("0") && val[1] !== ".") {
+                        val = val.replace(/^0+/, "");
+                        if (val === "") val = "0";
+                      }
+                      setRewardInput(sanitizeRupeeInput(val));
+                    }}
+                    onFocus={(e) => e.target.select()}
                     onBlur={handleBlur}
-                    className="w-full h-[56px] pl-[36px] pr-[16px] bg-muted/30 border border-border/60 hover:border-border focus:border-primary focus:ring-[3px] focus:ring-primary/10 rounded-[var(--radius-input)] text-[24px] font-semibold text-right text-[var(--color-text-primary)] outline-none transition-all tabular-nums"
+                    className="w-full h-12 pl-[36px] pr-[16px] bg-muted/30 border border-border/60 hover:border-border focus:border-primary focus:ring-[3px] focus:ring-primary/10 rounded-[var(--radius-input)] text-[24px] font-semibold text-right text-[var(--color-text-primary)] outline-none transition-all tabular-nums"
                   />
                 </div>
 
                 {inputError && (
-                  <p className="text-[12px] text-destructive font-medium px-1">
+                  <p id="reward-amount-error" className="text-[12px] text-destructive font-medium px-1" role="alert">
                     {inputError}
                   </p>
                 )}
@@ -533,6 +569,7 @@ export function CheckoutSummaryStep() {
                       <button
                         key={ratio}
                         type="button"
+                        aria-pressed={isActive}
                         className={`h-[36px] flex-1 rounded-[12px] text-[13px] font-semibold transition-all ${isActive ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                         onClick={() => setRewardInput(chipRupees)}
                       >
@@ -598,51 +635,35 @@ export function CheckoutSummaryStep() {
             <p className="text-[12px] text-muted-foreground font-semibold uppercase tracking-wider mb-2 pl-1">
               Payment Method
             </p>
-            <div className="flex bg-muted/50 rounded-[16px] p-1 gap-1 border border-border/40">
+            <div className="flex bg-muted/40 rounded-[16px] p-1 gap-1 border border-border/40 relative" role="radiogroup" aria-label="Payment method">
               <button
                 type="button"
+                role="radio"
+                aria-checked={effectivePaymentMethod === "cash"}
                 onClick={() => setPaymentMethod("cash")}
-                className={`
-                  flex-1 flex items-center justify-center gap-2 h-[44px] rounded-[12px] transition-all cursor-pointer
-                  ${effectivePaymentMethod === "cash" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}
-                `}
+                className={cn(
+                  "relative z-10 flex-1 flex items-center justify-center gap-2 h-11 rounded-[12px] transition-all duration-300 outline-none cursor-pointer",
+                  effectivePaymentMethod === "cash"
+                    ? "bg-background text-foreground font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-border/40"
+                    : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98]"
+                )}
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <rect x="2" y="6" width="20" height="12" rx="2" />
-                  <circle cx="12" cy="12" r="2" />
-                  <path d="M6 12h.01M18 12h.01" />
-                </svg>
+                <Banknote className={cn("size-[18px]", effectivePaymentMethod === "cash" ? "text-primary" : "opacity-70")} aria-hidden="true" />
                 <span className="text-[14px]">Cash</span>
               </button>
               <button
                 type="button"
+                role="radio"
+                aria-checked={effectivePaymentMethod === "online"}
                 onClick={() => setPaymentMethod("online")}
-                className={`
-                  flex-1 flex items-center justify-center gap-2 h-[44px] rounded-[12px] transition-all cursor-pointer
-                  ${effectivePaymentMethod === "online" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}
-                `}
+                className={cn(
+                  "relative z-10 flex-1 flex items-center justify-center gap-2 h-11 rounded-[12px] transition-all duration-300 outline-none cursor-pointer",
+                  effectivePaymentMethod === "online"
+                    ? "bg-background text-foreground font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-border/40"
+                    : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98]"
+                )}
               >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <rect x="7" y="7" width="3" height="3" />
-                  <rect x="14" y="7" width="3" height="3" />
-                  <rect x="7" y="14" width="3" height="3" />
-                  <rect x="14" y="14" width="3" height="3" />
-                </svg>
+                <Smartphone className={cn("size-[18px]", effectivePaymentMethod === "online" ? "text-primary" : "opacity-70")} aria-hidden="true" />
                 <span className="text-[14px]">Online</span>
               </button>
             </div>
@@ -667,20 +688,14 @@ export function CheckoutSummaryStep() {
         ) : null}
       </main>
 
-      <div
-        className="fixed bottom-0 left-0 right-0 p-[var(--spacing-md)] pb-[calc(var(--spacing-md)+env(safe-area-inset-bottom,0px))] bg-background/80 backdrop-blur-2xl border-t border-border/40 shadow-[0_-8px_32px_rgba(0,0,0,0.04)] z-[60]"
-        style={{ width: "100%", left: 0, right: 0, bottom: 0 }}
-      >
-        <div
-          style={{
-            position: "relative",
-            width: "100%",
-            maxWidth: "512px",
-            margin: "0 auto",
-          }}
-        >
-          <button
-            type="button"
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] bg-background/80 backdrop-blur-xl border-t border-border/40 z-[60]">
+        <div className="max-w-[768px] mx-auto w-full">
+          <Button
+            size="full"
+            loading={
+              isCompleting ||
+              (isOtpPending && (otpState === "idle" || otpState === "sent"))
+            }
             disabled={
               isCompleting ||
               isOtpPending ||
@@ -693,65 +708,38 @@ export function CheckoutSummaryStep() {
                 ? () => handleSendOtp()
                 : handleCompleteVisit
             }
-            className="h-[56px] bg-primary text-primary-foreground font-semibold text-[16px] rounded-[var(--radius-button)] disabled:opacity-50 active:scale-[0.97] transition-all cursor-pointer shadow-[0_4px_16px_rgba(var(--primary),0.3)] flex items-center justify-center gap-2"
-            style={{ width: "100%" }}
+            className="shadow-[0_4px_16px_rgba(79,70,229,0.3)]"
           >
-            {isCompleting || isOtpPending ? (
-              <>
-                <svg
-                  className="animate-spin h-5 w-5 text-primary-foreground"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                <span>
-                  {isCompleting
-                    ? "Completing Visit..."
-                    : isOtpPending && otpState === "sent"
-                      ? "Verifying OTP..."
-                      : "Sending OTP..."}
-                </span>
-              </>
-            ) : summary.requiresOtp && !otpVerifiedToken ? (
-              "Verify Reward to Complete"
-            ) : (
-              "Complete Visit"
-            )}
-          </button>
+            {summary.requiresOtp && !otpVerifiedToken
+              ? "Verify Reward to Complete"
+              : "Complete Visit"}
+          </Button>
         </div>
       </div>
 
-      {/* Inline OTP Bottom Sheet Overlay */}
-      {summary.requiresOtp && otpState === "sent" && !otpVerifiedToken && (
-        <div className="fixed inset-0 z-[70] flex flex-col justify-end items-center">
-          <div
-            className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300"
-            onClick={() => setOtpState("idle")}
-          />
-          <div className="relative bg-card w-full max-w-[512px] rounded-t-[32px] p-[var(--spacing-md)] pt-6 pb-[calc(32px+env(safe-area-inset-bottom,0px))] animate-in slide-in-from-bottom-full duration-300 shadow-[0_-8px_32px_rgba(0,0,0,0.08)] border-t border-border/40">
-            <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-[var(--spacing-md)]" />
-
-            <h3 className="text-[22px] font-bold text-[var(--color-text-primary)] mb-1 text-center">
+      {/* OTP Verification Drawer */}
+      <Drawer
+        open={
+          summary.requiresOtp &&
+          otpState === "sent" &&
+          !otpVerifiedToken
+        }
+        onOpenChange={(open) => {
+          if (!open) setOtpState("idle");
+        }}
+        showSwipeHandle
+      >
+        <DrawerContent className="mx-auto max-w-[512px]">
+          <DrawerHeader className="text-center">
+            <DrawerTitle className="text-[22px] font-bold">
               Verify Reward
-            </h3>
-            <p className="text-[14px] text-[var(--color-text-secondary)] mb-8 text-center">
+            </DrawerTitle>
+            <p className="text-[14px] text-muted-foreground mt-1">
               OTP sent to {customer.phone.replace(/.(?=.{4})/g, "x")}
             </p>
+          </DrawerHeader>
 
+          <div className="px-4 pb-8">
             <div className="mb-8">
               <OTPInput
                 key={otpResetKey}
@@ -771,12 +759,12 @@ export function CheckoutSummaryStep() {
               onClick={() => handleSendOtp(true)}
             >
               {resendSeconds > 0
-                ? `Resend code in ${resendSeconds}s`
+                ? `Resend SMS in ${resendSeconds}s`
                 : "Resend code"}
             </Button>
           </div>
-        </div>
-      )}
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

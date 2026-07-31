@@ -69,7 +69,7 @@ export function CartItemRow({
           type="button"
           variant="outline"
           size="icon"
-          className="size-11 touch-target"
+          className="size-11 touch-target shrink-0"
           onClick={() => onDecrement(id)}
           aria-label={
             isLastUnit
@@ -95,7 +95,7 @@ export function CartItemRow({
           type="button"
           variant="outline"
           size="icon"
-          className="size-11 touch-target"
+          className="size-11 touch-target shrink-0"
           onClick={() => onIncrement(id)}
           aria-label={`Increase quantity of ${name}`}
         >

@@ -74,11 +74,11 @@ export function AppNavigation() {
       onClick: () => handleNavClick("/dashboard"),
     },
     {
-      key: "transactions",
+      key: "sales",
       label: "Sales",
       icon: CreditCard,
-      active: pathname.startsWith("/transactions"),
-      onClick: () => handleNavClick("/transactions"),
+      active: pathname.startsWith("/sales"),
+      onClick: () => handleNavClick("/sales"),
     },
     {
       key: "visit",

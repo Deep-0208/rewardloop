@@ -1,5 +1,4 @@
 import * as React from "react";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 export interface PhoneInputProps extends Omit<
@@ -19,26 +18,27 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
     };
 
     return (
-      <div className="flex relative">
+      <div 
+        className={cn(
+          "flex relative shadow-sm rounded-[14px] border border-border/60 bg-background overflow-hidden transition-all focus-within:ring-[3px] focus-within:ring-primary/20 focus-within:border-primary h-[52px]",
+          hasError && "border-destructive focus-within:ring-destructive focus-within:border-destructive",
+          disabled && "opacity-50 cursor-not-allowed"
+        )}
+      >
         <div
           aria-hidden="true"
-          className={cn(
-            "flex items-center justify-center bg-muted border border-r-0 rounded-l-xl px-3.5 text-muted-foreground text-sm font-semibold select-none",
-            disabled && "opacity-50 cursor-not-allowed",
-            hasError && "border-destructive text-destructive",
-          )}
+          className="flex items-center justify-center bg-muted/40 border-r border-border/60 px-4 text-muted-foreground text-[15px] font-bold select-none"
         >
           +91
         </div>
-        <Input
+        <input
           type="tel"
           inputMode="numeric"
           aria-label="10-digit Indian mobile number"
           placeholder="Enter 10-digit number"
           className={cn(
-            "rounded-l-none pl-3",
-            hasError && "border-destructive focus-visible:ring-destructive",
-            className,
+            "flex-1 bg-transparent border-none outline-none text-[16px] font-medium tracking-wide pl-3 text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed min-w-0",
+            className
           )}
           disabled={disabled}
           maxLength={10}

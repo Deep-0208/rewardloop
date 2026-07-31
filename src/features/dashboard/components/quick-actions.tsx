@@ -23,7 +23,7 @@ export function QuickActions() {
           <span className="text-xs font-medium text-foreground">New Visit</span>
         </Button>
       </Link>
-      <Link href="/transactions" className="contents">
+      <Link href="/sales" className="contents">
         <Button
           variant="ghost"
           className="flex h-auto flex-col items-center gap-2 rounded-2xl bg-card p-4 shadow-[var(--shadow-card)] transition-all duration-150 hover:shadow-[var(--shadow-soft)] active:scale-[0.97]"

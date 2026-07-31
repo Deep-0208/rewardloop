@@ -107,6 +107,10 @@ export function RewardRulesContent({ initialRules }: RewardRulesContentProps) {
                     max="100"
                     value={rewardPercentage}
                     onChange={(e) => setRewardPercentage(e.target.value)}
+                    onBlur={() => {
+                      const v = Math.min(100, Math.max(1, Number(rewardPercentage) || 1));
+                      setRewardPercentage(String(v));
+                    }}
                     className="w-24 text-center tabular-nums"
                   />
                   <span className="text-sm text-muted-foreground">
@@ -133,6 +137,10 @@ export function RewardRulesContent({ initialRules }: RewardRulesContentProps) {
                     max="100"
                     value={maxRedeemPercentage}
                     onChange={(e) => setMaxRedeemPercentage(e.target.value)}
+                    onBlur={() => {
+                      const v = Math.min(100, Math.max(1, Number(maxRedeemPercentage) || 1));
+                      setMaxRedeemPercentage(String(v));
+                    }}
                     className="w-24 text-center tabular-nums"
                   />
                   <span className="text-sm text-muted-foreground">
@@ -146,13 +154,10 @@ export function RewardRulesContent({ initialRules }: RewardRulesContentProps) {
           <Button
             onClick={handleSave}
             disabled={isPending || !hasChanges}
+            loading={isPending}
             className="h-12 rounded-xl font-semibold shadow-md"
           >
-            {isPending ? (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            ) : (
-              <Check className="mr-2 size-4" />
-            )}
+            <Check className="mr-2 size-4" />
             Save Changes
           </Button>
         </div>

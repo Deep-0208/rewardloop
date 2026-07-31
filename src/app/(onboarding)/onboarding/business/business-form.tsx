@@ -189,20 +189,16 @@ export function BusinessForm() {
 
           {/* Navigation buttons */}
           <div className="flex items-center gap-3 pt-2">
-            {step > 1 ? (
               <Button
                 type="button"
                 variant="outline"
                 size="lg"
                 onClick={handleBack}
                 disabled={isPending}
-                className="flex-1 sm:flex-none"
+                className={`flex-1 sm:flex-none ${step === 1 ? "invisible pointer-events-none" : ""}`}
               >
                 <ArrowLeft className="mr-1.5 h-4 w-4" /> Back
               </Button>
-            ) : (
-              <div className="hidden sm:block flex-1" />
-            )}
 
             {step < 3 ? (
               <Button

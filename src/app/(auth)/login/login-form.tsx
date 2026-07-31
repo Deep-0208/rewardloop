@@ -62,19 +62,18 @@ export default function LoginForm({
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
       <div className="w-full max-w-[400px] mx-auto">
-        {/* Brand Header */}
-        <div className="flex flex-col items-center gap-6 mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex flex-col items-center gap-6 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Brand Icon */}
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-primary shadow-[var(--shadow-hero)]">
-            <Gift className="size-8 text-primary-foreground" strokeWidth={2} />
+          <div className="flex size-[72px] items-center justify-center rounded-[20px] bg-gradient-to-br from-primary to-primary/80 shadow-[0_8px_32px_rgba(79,70,229,0.3)] ring-1 ring-primary/20 hover:scale-105 transition-transform">
+            <Gift className="size-8 text-primary-foreground drop-shadow-sm" strokeWidth={2.5} />
           </div>
 
           {/* App Name & Tagline */}
-          <div className="text-center">
-            <h1 className="text-[28px] font-bold tracking-tight text-foreground leading-tight">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
               RewardLoop
             </h1>
-            <p className="mt-2 text-[15px] text-muted-foreground font-normal">
+            <p className="text-[15px] font-medium text-muted-foreground/80">
               Reward your regulars
             </p>
           </div>
@@ -120,19 +119,20 @@ export default function LoginForm({
                 control={form.control}
                 name="termsAccepted"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-[var(--shadow-soft)]">
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 px-2 py-3 min-h-[48px]">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        className="mt-[3px] rounded-[4px] data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground transition-colors"
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel className="text-[13px] font-normal text-muted-foreground leading-relaxed cursor-pointer">
+                      <FormLabel className="text-[13px] font-medium text-muted-foreground leading-7 cursor-pointer select-none flex-1">
                         I agree to the{" "}
                         <a
                           href="/terms"
-                          className="underline hover:text-foreground"
+                          className="font-semibold text-foreground underline decoration-border hover:decoration-primary transition-colors"
                           onClick={(e) => e.stopPropagation()}
                         >
                           Terms of Service
@@ -140,7 +140,7 @@ export default function LoginForm({
                         and{" "}
                         <a
                           href="/privacy"
-                          className="underline hover:text-foreground"
+                          className="font-semibold text-foreground underline decoration-border hover:decoration-primary transition-colors"
                           onClick={(e) => e.stopPropagation()}
                         >
                           Privacy Policy
@@ -158,7 +158,7 @@ export default function LoginForm({
                 size="full"
                 disabled={isFormDisabled}
                 loading={isPending}
-                className="shadow-[var(--shadow-hero)]"
+                className="h-[52px] rounded-[14px] text-[16px] font-bold shadow-[0_8px_20px_rgba(79,70,229,0.2)] transition-all duration-300 hover:shadow-[0_12px_28px_rgba(79,70,229,0.3)] active:scale-[0.98]"
               >
                 Continue
               </Button>

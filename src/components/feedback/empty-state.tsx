@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
+import { EmptyStateIllustration } from "./empty-state-illustration";
 
 interface EmptyStateProps {
   icon?: ReactNode;
@@ -34,14 +35,15 @@ export function EmptyState({
       )}
     >
       {icon ? (
-        <div
-          className={cn(
-            "flex items-center justify-center rounded-2xl bg-primary/8",
-            compact ? "size-14" : "size-16",
-          )}
-        >
-          {icon}
-        </div>
+        compact ? (
+          <div
+            className="flex items-center justify-center rounded-2xl bg-primary/8 size-14 text-primary"
+          >
+            {icon}
+          </div>
+        ) : (
+          <EmptyStateIllustration icon={icon} />
+        )
       ) : null}
 
       <div className="flex flex-col gap-1">

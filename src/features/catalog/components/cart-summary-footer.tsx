@@ -1,25 +1,15 @@
-/**
- * RewardLoop — Cart Summary Footer.
- *
- * Sticky bottom bar showing item count, quantity, subtotal,
- * and the "Continue" CTA. Expands cart drawer on tap.
- *
- * @module features/catalog/components/cart-summary-footer
- */
-
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { ChevronUp } from "@/components/icons";
+import { IndianRupee } from "@/components/icons";
 import { formatCurrency } from "@/utils";
 import type { Paise } from "@/types";
 import { useIsOffline } from "@/components/layout/network-status-banner";
+import { Button } from "@/components/ui/button";
 
 interface CartSummaryFooterProps {
   readonly totalItems: number;
   readonly totalQuantity: number;
   readonly subtotal: Paise;
-  readonly onExpandCart: () => void;
   readonly onContinue: () => void;
   readonly className?: string;
 }
@@ -27,18 +17,15 @@ interface CartSummaryFooterProps {
 /**
  * CartSummaryFooter — Sticky bottom bar for the catalog step.
  *
- * - Shows "X Items | Y Qty | ₹Z".
- * - Tap summary area to expand cart drawer.
- * - Continue button disabled when cart is empty.
- * - aria-live region announces subtotal changes.
+ * Designed with a premium glassmorphic background, clean typography,
+ * and standard Tailwind utility classes instead of inline styles.
  */
 export function CartSummaryFooter({
   totalItems,
   totalQuantity,
   subtotal,
-  onExpandCart,
   onContinue,
-  className,
+  className = "",
 }: CartSummaryFooterProps) {
   const isOffline = useIsOffline();
   const isEmpty = totalItems === 0;
@@ -46,127 +33,54 @@ export function CartSummaryFooter({
 
   return (
     <div
-      className={className}
-      style={{
-        position: "fixed",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 60,
-        backgroundColor: "var(--color-card, #ffffff)",
-        borderTop: "1px solid var(--color-border, #e5e7eb)",
-        boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
-      }}
+      className={`fixed bottom-0 left-0 right-0 z-[60] bg-background/80 backdrop-blur-xl border-t border-border/40 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-[0_-8px_32px_rgba(0,0,0,0.04)] ${className}`}
     >
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: "512px",
-          margin: "0 auto",
-          height: "140px",
-        }}
-      >
-        {/* Info Area (Clickable to expand cart) */}
-        <button
-          type="button"
-          onClick={onExpandCart}
-          disabled={isEmpty}
-          style={{
-            position: "absolute",
-            top: "16px",
-            left: "16px",
-            right: "100px",
-            height: "48px",
-            background: "transparent",
-            border: "none",
-            textAlign: "left",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            cursor: isEmpty ? "default" : "pointer",
-            opacity: isEmpty ? 0.5 : 1,
-          }}
-          aria-label="View cart"
+      <div className="max-w-[768px] mx-auto w-full flex flex-col gap-4">
+        {/* Cart Info */}
+        <div
+          className={`flex items-center justify-between px-1 py-1 ${
+            isEmpty ? "opacity-60" : ""
+          }`}
         >
-          <div
-            style={{
-              fontSize: "13px",
-              color: "var(--color-text-secondary, #6b7280)",
-              fontWeight: 500,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              width: "100%",
-            }}
-          >
-            {isEmpty
-              ? "No items selected"
-              : `${totalItems} ${totalItems === 1 ? "Item" : "Items"} Selected`}
-            {!isEmpty && (
-              <ChevronUp
-                className="size-4 inline-block ml-1"
-                style={{ verticalAlign: "text-bottom" }}
-              />
-            )}
+          <div className="flex flex-col text-left">
+            <div className="flex items-center text-[12px] font-bold tracking-wider uppercase text-muted-foreground mb-1">
+              {isEmpty
+                ? "No items selected"
+                : `${totalItems} ${totalItems === 1 ? "Item" : "Items"} Selected`}
+            </div>
+            <div className="text-[22px] font-bold tracking-tight text-foreground leading-none">
+              Total: {formatCurrency(subtotal)}
+            </div>
           </div>
-          <div
-            style={{
-              fontSize: "20px",
-              fontWeight: "bold",
-              color: "var(--color-text-primary, #111827)",
-              marginTop: "2px",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Total: {formatCurrency(subtotal)}
+          
+          <div className={`flex size-12 shrink-0 items-center justify-center rounded-2xl transition-colors duration-300 ${isEmpty ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary shadow-sm'}`}>
+            <IndianRupee className="size-6" />
           </div>
-        </button>
+        </div>
 
-        {/* Continue Button */}
-        <button
-          type="button"
+        {/* Continue CTA */}
+        <Button
+          size="full"
+          className="h-14 text-[16px] font-bold shadow-[0_4px_16px_rgba(79,70,229,0.3)] transition-all duration-300 active:scale-[0.98]"
           disabled={isContinueDisabled}
           onClick={onContinue}
-          style={{
-            position: "absolute",
-            bottom: "16px",
-            left: "16px",
-            right: "16px",
-            height: "56px",
-            backgroundColor: "var(--color-primary, #4F46E5)",
-            color: "var(--color-primary-foreground, #ffffff)",
-            borderRadius: "16px",
-            fontWeight: "bold",
-            fontSize: "16px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
-            border: "none",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            cursor: isContinueDisabled ? "default" : "pointer",
-            opacity: isContinueDisabled ? 0.5 : 1,
-            width: "calc(100% - 32px)",
-          }}
-          aria-label={isOffline ? "Offline" : "Continue to Reward Calculation"}
         >
-          {isOffline ? "Offline" : "Continue"}
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </button>
+          {isOffline ? "Offline" : "Continue to Checkout"}
+          {!isOffline && (
+            <svg
+              className="ml-2 size-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          )}
+        </Button>
       </div>
     </div>
   );

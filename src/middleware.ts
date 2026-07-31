@@ -13,7 +13,7 @@ const AUTH_ROUTE_PREFIX = "/login";
 const VERIFY_ROUTE_PREFIX = "/verify";
 const APP_ROUTE_PREFIXES = [
   "/dashboard",
-  "/transactions",
+  "/sales",
   "/visit",
   "/insights",
   "/more",
@@ -53,8 +53,11 @@ export function isOnboardingRoute(pathname: string): boolean {
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Only enforce strict session_version DB checks for main app routes
-  const requireStrictValidation = isAppRoute(pathname);
+  // Enforce strict DB checks for app, auth, and onboarding routes to correctly fetch onboardingStatus
+  const requireStrictValidation =
+    isAppRoute(pathname) ||
+    isAuthRoute(pathname) ||
+    isOnboardingRoute(pathname);
 
   const { response, user, onboardingStatus } = await updateSession(
     request,

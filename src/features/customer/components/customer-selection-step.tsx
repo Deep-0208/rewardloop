@@ -221,7 +221,7 @@ export function CustomerSelectionStep() {
                         inputMode="numeric"
                         pattern="[0-9]*"
                         maxLength={10}
-                        className="pl-[48px] h-[60px] bg-card border-2 border-border/60 focus:border-primary focus:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] rounded-[var(--radius-input)] text-[17px] font-medium outline-none transition-all shadow-[var(--shadow-soft)]"
+                        className="pl-[48px] h-12 bg-card border-2 border-border/60 focus:border-primary focus:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] rounded-[var(--radius-input)] text-[17px] font-medium outline-none transition-all shadow-[var(--shadow-soft)]"
                         {...field}
                         onChange={(e) => {
                           const val = e.target.value.replace(/\D/g, "");
@@ -260,7 +260,7 @@ export function CustomerSelectionStep() {
           <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 relative pb-[120px]">
             <div className="bg-card rounded-[var(--radius-card)] p-[var(--spacing-md)] shadow-[var(--shadow-soft)] relative overflow-hidden">
               {/* Success accent */}
-              <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-success rounded-r-full" />
+              <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[var(--color-success)] rounded-r-full" />
 
               <div className="flex items-start justify-between mb-[var(--spacing-sm)] pl-[var(--spacing-s)]">
                 <div className="flex items-center gap-[var(--spacing-s)]">
@@ -295,11 +295,11 @@ export function CustomerSelectionStep() {
                 </div>
               </div>
 
-              <div className="fixed bottom-0 left-0 right-0 p-[var(--spacing-md)] pb-[calc(var(--spacing-md)+env(safe-area-inset-bottom,0px))] bg-background/80 backdrop-blur-xl border-t border-border/30 z-10">
+              <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] bg-background/80 backdrop-blur-xl border-t border-border/40 z-[60]">
                 <div className="max-w-[768px] mx-auto w-full">
                   <Button
                     size="full"
-                    className="w-full h-[56px] text-[16px] font-semibold rounded-[var(--radius-button)] shadow-[0_4px_16px_rgba(79,70,229,0.3)] active:scale-[0.97] transition-all"
+                    className="shadow-[0_4px_16px_rgba(79,70,229,0.3)]"
                     onClick={() => handleSelectCustomer(searchResult.data!)}
                   >
                     Continue with{" "}
@@ -366,12 +366,12 @@ export function CustomerSelectionStep() {
                       )}
                     />
 
-                    <div className="fixed bottom-0 left-0 right-0 p-[var(--spacing-md)] pb-[calc(var(--spacing-md)+env(safe-area-inset-bottom,0px))] bg-background/80 backdrop-blur-xl border-t border-border/30 z-10">
+                    <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] bg-background/80 backdrop-blur-xl border-t border-border/40 z-[60]">
                       <div className="max-w-[768px] mx-auto w-full">
                         <Button
                           type="submit"
                           size="full"
-                          className="w-full h-[56px] text-[16px] font-semibold rounded-[var(--radius-button)] shadow-[0_4px_16px_rgba(79,70,229,0.3)] active:scale-[0.97] transition-all"
+                          className="shadow-[0_4px_16px_rgba(79,70,229,0.3)]"
                           disabled={isPending}
                         >
                           {isPending ? (

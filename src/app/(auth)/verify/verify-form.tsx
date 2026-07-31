@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { ArrowLeft } from "@/components/icons";
+import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -48,6 +48,7 @@ export default function VerifyForm({ phone }: { phone: string }) {
         setServerError(result.error);
         return;
       }
+      
       posthog.identify(result.data.user.id, {
         phone: result.data.user.phone,
         role: result.data.user.role,
@@ -56,6 +57,7 @@ export default function VerifyForm({ phone }: { phone: string }) {
         role: result.data.user.role,
         has_business: result.data.business !== null,
       });
+      
       router.replace(result.data.redirectTo);
     });
   };
@@ -92,7 +94,7 @@ export default function VerifyForm({ phone }: { phone: string }) {
           <button
             onClick={handleBack}
             disabled={isPending}
-            className="flex items-center gap-1 text-[14px] text-muted-foreground hover:text-foreground transition-colors duration-150 mb-8 cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1 text-[14px] text-muted-foreground hover:text-foreground transition-colors duration-150 mb-8 cursor-pointer disabled:opacity-50 p-2 -ml-2 rounded-md"
             aria-label="Go back to phone number"
           >
             <ArrowLeft className="size-5" />
@@ -114,63 +116,63 @@ export default function VerifyForm({ phone }: { phone: string }) {
 
         {/* OTP Form */}
         <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-          {serverError && (
-            <Alert variant="destructive">
-              <AlertDescription>{serverError}</AlertDescription>
-            </Alert>
-          )}
+            {serverError && (
+              <Alert variant="destructive">
+                <AlertDescription>{serverError}</AlertDescription>
+              </Alert>
+            )}
 
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="flex flex-col gap-6"
-            >
-              <FormField
-                control={form.control}
-                name="otp"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col items-center justify-center space-y-2">
-                    <FormControl>
-                      <OTPInput
-                        value={field.value}
-                        disabled={isPending}
-                        hasError={
-                          !!serverError ||
-                          (form.formState.isSubmitted &&
-                            !!form.formState.errors.otp)
-                        }
-                        onChange={(value) => {
-                          field.onChange(value);
-                          if (serverError) setServerError(null);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage className="text-center" />
-                  </FormItem>
-                )}
-              />
-
-              <Button
-                type="submit"
-                size="full"
-                disabled={isFormDisabled}
-                loading={isPending}
-                className="shadow-[var(--shadow-hero)]"
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="flex flex-col gap-6"
               >
-                Verify & Continue
-              </Button>
-            </form>
-          </Form>
+                <FormField
+                  control={form.control}
+                  name="otp"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col items-center justify-center space-y-2">
+                      <FormControl>
+                        <OTPInput
+                          value={field.value}
+                          disabled={isPending}
+                          hasError={
+                            !!serverError ||
+                            (form.formState.isSubmitted &&
+                              !!form.formState.errors.otp)
+                          }
+                          onChange={(value) => {
+                            field.onChange(value);
+                            if (serverError) setServerError(null);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-center" />
+                    </FormItem>
+                  )}
+                />
 
-          {/* Resend Timer */}
-          <div className="flex justify-center">
-            <ResendTimer
-              initialSeconds={30}
-              onResend={handleResend}
-              isResending={isPending}
-            />
+                <Button
+                  type="submit"
+                  size="full"
+                  disabled={isFormDisabled}
+                  loading={isPending}
+                  className="shadow-[var(--shadow-hero)]"
+                >
+                  Verify & Continue
+                </Button>
+              </form>
+            </Form>
+
+            {/* Resend Timer */}
+            <div className="flex justify-center">
+              <ResendTimer
+                initialSeconds={30}
+                onResend={handleResend}
+                isResending={isPending}
+              />
+            </div>
           </div>
-        </div>
       </div>
     </div>
   );

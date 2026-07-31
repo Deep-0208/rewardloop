@@ -206,12 +206,16 @@
   --sidebar-ring: oklch(0.637 0.186 275.75);
 
   --color-success: oklch(0.696 0.17 162.48);
+  --color-success-light: oklch(0.2 0.05 162.48);
   --color-warning: oklch(0.769 0.188 70.08);
   --color-error: oklch(0.704 0.191 22.22);
   --color-info: oklch(0.637 0.186 275.75);
   --color-primary-dark: oklch(0.496 0.186 275.75);
+  --color-primary-light: oklch(0.2 0.04 275.75);
+  --color-surface: oklch(0.269 0.006 286.07);
   --color-text-primary: oklch(0.985 0.002 247.84);
   --color-text-secondary: oklch(0.708 0.01 286.07);
+  --color-text-tertiary: oklch(0.5 0.01 286.07);
 
   --shadow-sm: 0px 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-card: 0px 1px 3px rgba(0, 0, 0, 0.4);

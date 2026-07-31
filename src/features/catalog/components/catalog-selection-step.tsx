@@ -12,22 +12,17 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
-import { AlertCircle, RefreshCw, X, FileQuestion } from "@/components/icons";
+import { AlertCircle, RefreshCw, FileQuestion } from "@/components/icons";
 import { getCatalogItems } from "../actions/get-catalog-items";
 import { useBillingStore } from "@/stores/billing-store";
 import type { CatalogItem } from "../types";
 import { CatalogItemCard } from "./catalog-item-card";
 import { CatalogSearchInput } from "./catalog-search-input";
 import { CartSummaryFooter } from "./cart-summary-footer";
-import { CartItemRow } from "./cart-item-row";
+
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { catalogCache, clearCatalogPromise } from "../utils/catalog-cache";
 
@@ -401,56 +396,8 @@ export function CatalogSelectionStep() {
         totalItems={getTotalItems()}
         totalQuantity={getTotalQuantity()}
         subtotal={getSubtotal()}
-        onExpandCart={() => setIsDrawerOpen(true)}
         onContinue={handleContinue}
       />
-
-      <Drawer
-        open={isDrawerOpen}
-        onOpenChange={setIsDrawerOpen}
-        showSwipeHandle
-      >
-        <DrawerContent className={cn("mx-auto max-w-lg")}>
-          <DrawerHeader className="flex-row items-center justify-between">
-            <DrawerTitle>Your Cart</DrawerTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-12"
-              aria-label="Close cart"
-              onClick={() => setIsDrawerOpen(false)}
-            >
-              <X className="size-4" />
-            </Button>
-          </DrawerHeader>
-
-          <div className="flex-1 overflow-y-auto px-4">
-            {items.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                Your cart is empty. Tap items to add them.
-              </p>
-            ) : (
-              items.map((item) => (
-                <CartItemRow
-                  key={item.catalogItemId}
-                  id={item.catalogItemId}
-                  name={item.name}
-                  unitPrice={item.unitPrice}
-                  quantity={item.quantity}
-                  onIncrement={(id) => {
-                    if (item.type === "service") updateServiceQuantity(id, 1);
-                    else updateProductQuantity(id, 1);
-                  }}
-                  onDecrement={(id) => {
-                    if (item.type === "service") updateServiceQuantity(id, -1);
-                    else updateProductQuantity(id, -1);
-                  }}
-                />
-              ))
-            )}
-          </div>
-        </DrawerContent>
-      </Drawer>
     </div>
   );
 }

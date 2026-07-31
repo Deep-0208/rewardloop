@@ -39,6 +39,9 @@ export {
   HelpCircle,
   Bell,
   ExternalLink,
+  Save,
+  Banknote,
+  Smartphone,
 
   /* ─── Status ─────────────────────────────────────────────────────────────── */
   AlertCircle,

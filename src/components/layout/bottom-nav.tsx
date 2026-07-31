@@ -8,7 +8,7 @@ interface BottomNavProps {
 
 const TAB_ROUTES: Record<string, string> = {
   "nav-home": "/dashboard",
-  "nav-transactions": "/transactions",
+  "nav-transactions": "/sales",
   "nav-insights": "/insights",
   "nav-more": "/more",
 };
@@ -157,7 +157,7 @@ const tabs = [
 ];
 
 function getActiveTabFromPath(pathname: string): string {
-  if (pathname.startsWith("/transactions")) return "nav-transactions";
+  if (pathname.startsWith("/sales")) return "nav-transactions";
   if (pathname.startsWith("/insights")) return "nav-insights";
   if (pathname.startsWith("/more")) return "nav-more";
   return "nav-home";

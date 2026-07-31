@@ -65,7 +65,7 @@ export function RecentTransactionsList({
           Recent Sales
         </h2>
         <Link
-          href="/transactions"
+          href="/sales"
           className="text-[11px] font-semibold text-primary uppercase tracking-wide hover:underline"
         >
           View All
