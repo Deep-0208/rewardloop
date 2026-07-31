@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Gift, Percent, Check, Loader2 } from "@/components/icons";
+import posthog from "posthog-js";
 import { updateRewardRules } from "@/features/settings/actions";
 import type { RewardRulesConfig } from "@/features/settings/types";
 import { toast } from "sonner";
@@ -52,6 +53,10 @@ export function RewardRulesContent({ initialRules }: RewardRulesContentProps) {
         maxRedeemPercentage: mrp,
       });
       if (result.success) {
+        posthog.capture("reward_rules_updated", {
+          reward_percentage: rp,
+          max_redeem_percentage: mrp,
+        });
         toast.success("Reward rules updated successfully.");
       } else {
         toast.error(result.error);

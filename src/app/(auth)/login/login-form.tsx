@@ -22,6 +22,7 @@ import {
 } from "@/features/auth/schemas/phone-schema";
 import { sendOTP } from "@/features/auth/actions/send-otp";
 import { Gift } from "@/components/icons";
+import posthog from "posthog-js";
 
 export default function LoginForm({
   initialPhone = "",
@@ -48,6 +49,7 @@ export default function LoginForm({
         setServerError(result.error);
         return;
       }
+      posthog.capture("login_otp_requested");
       router.push(`/verify?phone=${encodeURIComponent(values.phone)}`);
     });
   };

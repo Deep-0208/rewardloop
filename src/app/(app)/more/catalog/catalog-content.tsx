@@ -30,6 +30,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Plus, Scissors, Loader2, Package } from "@/components/icons";
 import { formatCurrency } from "@/utils";
+import posthog from "posthog-js";
 import {
   createCatalogItem,
   toggleCatalogItemStatus,
@@ -84,6 +85,7 @@ export function CatalogManagementContent({
         type: newType,
       });
       if (result.success) {
+        posthog.capture("catalog_item_added", { item_type: result.data.type });
         setItems((prev) => [result.data, ...prev]);
         setShowAddDialog(false);
         setNewName("");
@@ -101,6 +103,10 @@ export function CatalogManagementContent({
     startTransition(async () => {
       const result = await toggleCatalogItemStatus(item.id, newStatus);
       if (result.success) {
+        posthog.capture("catalog_item_status_changed", {
+          item_type: item.type,
+          new_status: newStatus,
+        });
         setItems((prev) =>
           prev.map((i) => (i.id === item.id ? result.data : i)),
         );

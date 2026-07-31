@@ -5,6 +5,7 @@ import { LogOut } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import posthog from "posthog-js";
 
 /**
  * LogoutButton — Client component for signing out.
@@ -19,6 +20,7 @@ export function LogoutButton() {
       // Import the logout action dynamically to keep server-only imports clean
       const { logout } = await import("@/features/auth/actions");
       await logout();
+      posthog.reset();
       router.push("/login");
     } catch {
       setLoading(false);

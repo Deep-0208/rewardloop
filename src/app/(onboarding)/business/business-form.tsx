@@ -34,6 +34,7 @@ import {
   Trash2,
 } from "lucide-react";
 
+import posthog from "posthog-js";
 import { createBusiness } from "@/features/onboarding/actions/create-business";
 import {
   createBusinessSchema,
@@ -190,6 +191,11 @@ export function BusinessForm() {
         setServerError(result.error ?? "An unexpected error occurred.");
         return;
       }
+      posthog.capture("business_created", {
+        business_type: values.business_type,
+        service_count: values.services?.length ?? 0,
+        product_count: values.products?.length ?? 0,
+      });
       router.push("/dashboard");
     });
   };

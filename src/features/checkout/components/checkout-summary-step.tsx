@@ -26,6 +26,7 @@ import {
 import { ROUTES } from "@/constants/routes";
 import { formatCurrency } from "@/utils";
 import { useBillingStore } from "@/stores/billing-store";
+import posthog from "posthog-js";
 import {
   sendRewardOTP,
   retryRewardOTP,
@@ -281,6 +282,15 @@ export function CheckoutSummaryStep() {
       setCompletionError(result.error);
       return;
     }
+    posthog.capture("visit_completed", {
+      subtotal_paise: result.data.subtotalPaise,
+      reward_used_paise: result.data.rewardUsedPaise,
+      reward_earned_paise: result.data.rewardEarnedPaise,
+      final_paid_paise: result.data.finalPaidPaise,
+      payment_method: summary.finalPayablePaise === 0 ? "none" : paymentMethod,
+      items_count: requestInput.items.length,
+      is_duplicate: result.data.duplicate,
+    });
     toast.success("✓ Visit Completed", { duration: 1_000 });
     window.setTimeout(() => {
       reset();

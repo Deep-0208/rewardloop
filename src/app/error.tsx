@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import posthog from "posthog-js";
 import { ErrorScreen } from "@/components/error-screen";
 import { AppShell } from "@/components/app-shell";
 import { logger } from "@/lib/logger";
@@ -23,6 +24,7 @@ export default function RootError({
     logger.error(
       `Unhandled React Error: ${error.message} (Digest: ${error.digest}) [Route: ${typeof window !== 'undefined' ? window.location.pathname : 'unknown'}]`
     );
+    posthog.captureException(error);
   }, [error]);
 
   return (
