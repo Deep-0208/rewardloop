@@ -28,9 +28,7 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   return (
-    <header
-      className={cn("flex items-center gap-2 -mx-5 px-5 pt-3 pb-2", className)}
-    >
+    <header className={cn("flex items-center gap-2 px-5 pt-6 pb-3", className)}>
       {onBack ? (
         <button
           type="button"

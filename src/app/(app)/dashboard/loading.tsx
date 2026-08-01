@@ -13,7 +13,7 @@ export default function DashboardLoading() {
       aria-label="Loading dashboard"
     >
       {/* Header skeleton */}
-      <header className="px-5 pt-3 pb-2">
+      <header className="px-5 pt-6 pb-3">
         <div className="flex items-start justify-between">
           <div>
             <Skeleton className="h-4 w-28 mb-2 rounded" />
