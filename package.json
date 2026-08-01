@@ -60,6 +60,7 @@
     "agentation": "^3.0.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "happy-dom": "^20.11.1",
     "husky": "^9.1.7",
     "jsdom": "^30.0.1",
     "lint-staged": "^17.1.0",
