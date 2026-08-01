@@ -4,13 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  CheckCircle,
-  User,
-  Receipt,
-  Wallet,
-  Sparkles,
-} from "@/components/icons";
+import { CheckCircle, User, Receipt, Sparkles } from "@/components/icons";
 import { ROUTES } from "@/constants/routes";
 import { formatCurrency } from "@/utils";
 import type { CheckoutSummary } from "../types";

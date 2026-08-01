@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 import { getTrustedClientIp } from "@/lib/ip";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger("middleware");
 
 /* ─── Route Classification ─────────────────────────────────────────────────
  *
@@ -76,7 +79,7 @@ export default async function middleware(request: NextRequest) {
         return new NextResponse("Too Many Requests", { status: 429 });
       }
     } catch (error) {
-      console.error("[Middleware] Rate limiting error (failing open):", error);
+      logger.error("Rate limiting error (failing open)", error);
     }
   }
 

@@ -28,7 +28,6 @@ import {
   Receipt,
   User,
   Tag,
-  Wallet,
   Sparkles,
 } from "@/components/icons";
 import { ROUTES } from "@/constants/routes";
