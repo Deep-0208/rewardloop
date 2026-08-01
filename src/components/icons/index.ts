@@ -42,6 +42,8 @@ export {
   Save,
   Banknote,
   Smartphone,
+  Maximize,
+  Minimize,
 
   /* ─── Status ─────────────────────────────────────────────────────────────── */
   AlertCircle,

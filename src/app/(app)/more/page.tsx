@@ -15,6 +15,7 @@ import {
 } from "@/components/icons";
 import Link from "next/link";
 import { LogoutButton } from "./logout-button";
+import { FullscreenToggle } from "@/components/fullscreen-toggle";
 
 /**
  * More/Settings page — Business configuration hub.
@@ -135,6 +136,23 @@ export default async function MorePage() {
                   : "Not configured"
               }
             />
+          </CardContent>
+        </Card>
+      </Section>
+
+      {/* Display & Fullscreen */}
+      <Section title="Display & App Mode">
+        <Card className="overflow-hidden border-border/50 shadow-sm">
+          <CardContent className="p-4 flex items-center justify-between gap-3">
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-foreground">
+                Full Screen View
+              </span>
+              <span className="text-[12px] text-muted-foreground">
+                Hide Chrome address bar while using
+              </span>
+            </div>
+            <FullscreenToggle />
           </CardContent>
         </Card>
       </Section>
