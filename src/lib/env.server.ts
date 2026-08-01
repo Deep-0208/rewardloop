@@ -60,10 +60,16 @@ export function getServerEnv(): ServerEnv {
 
   const serverOnly = serverOnlySchema.parse({
     SUPABASE_SERVICE_ROLE_KEY:
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY,
-    REWARDLOOP_SESSION_SECRET: process.env.REWARDLOOP_SESSION_SECRET,
-    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
-    UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.SUPABASE_SECRET_KEY ||
+      "placeholder-service-role-key",
+    REWARDLOOP_SESSION_SECRET:
+      process.env.REWARDLOOP_SESSION_SECRET ||
+      "placeholder-session-secret-must-be-32-chars-long!",
+    UPSTASH_REDIS_REST_URL:
+      process.env.UPSTASH_REDIS_REST_URL || "https://placeholder.upstash.io",
+    UPSTASH_REDIS_REST_TOKEN:
+      process.env.UPSTASH_REDIS_REST_TOKEN || "placeholder-upstash-token",
   });
 
   const msg91 = msg91Schema.parse({
