@@ -54,10 +54,32 @@ import { PaymentSelector } from "./payment-selector";
 import { RewardRedemptionCard } from "./reward-redemption-card";
 import { CheckoutLine } from "./checkout-line-item";
 
-function CheckoutSummarySkeleton() {
+function CheckoutSummarySkeleton({
+  onBack,
+  onCancel,
+}: {
+  onBack?: () => void;
+  onCancel?: () => void;
+}) {
   return (
     <div className="flex flex-1 flex-col">
-      <PageHeader title="Review bill" subtitle="Step 3 of 3" />
+      <PageHeader
+        title="Review bill"
+        subtitle="Step 3 of 3"
+        onBack={onBack}
+        actions={
+          onCancel ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCancel}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Cancel
+            </Button>
+          ) : undefined
+        }
+      />
       <div className="flex flex-1 flex-col gap-4 px-4 py-4">
         <Skeleton className="h-20 w-full rounded-xl" />
         <Skeleton className="h-48 w-full rounded-xl" />
@@ -347,7 +369,10 @@ export function CheckoutSummaryStep() {
       </div>
     );
 
-  if (isLoading) return <CheckoutSummarySkeleton />;
+  if (isLoading)
+    return (
+      <CheckoutSummarySkeleton onBack={handleBack} onCancel={handleCancel} />
+    );
   if (loadError || !summary)
     return (
       <div className="flex flex-1 flex-col">

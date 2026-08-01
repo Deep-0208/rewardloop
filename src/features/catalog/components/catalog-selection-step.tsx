@@ -225,9 +225,15 @@ export function CatalogSelectionStep() {
       <div className="flex flex-1 flex-col">
         <PageHeader
           title="Select Items"
+          subtitle="Step 2 of 3"
           onBack={handleBack}
           actions={
-            <Button variant="ghost" size="sm" onClick={handleCancel}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="text-muted-foreground hover:text-foreground"
+            >
               Cancel
             </Button>
           }
@@ -250,6 +256,7 @@ export function CatalogSelectionStep() {
       <div className="flex flex-1 flex-col">
         <PageHeader
           title="Select Items"
+          subtitle="Step 2 of 3"
           onBack={handleBack}
           actions={
             <Button
@@ -285,6 +292,7 @@ export function CatalogSelectionStep() {
       <div className="flex flex-1 flex-col">
         <PageHeader
           title="Select Items"
+          subtitle="Step 2 of 3"
           onBack={handleBack}
           actions={
             <Button
