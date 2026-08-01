@@ -13,7 +13,7 @@ export function AppShell({ children, className }: PropsWithChildren) {
   return (
     <div
       className={cn(
-        "mx-auto flex min-h-dvh w-[430px] max-w-full flex-col bg-background",
+        "mx-auto flex min-h-dvh w-full max-w-md sm:max-w-lg md:max-w-2xl flex-col bg-background",
         "pt-safe pb-safe pl-safe pr-safe",
         className,
       )}
