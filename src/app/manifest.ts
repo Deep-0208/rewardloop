@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 /**
- * PWA Manifest configured for standalone, full-screen PWA execution without browser chrome or URL bar.
+ * PWA Manifest configured for automatic full-screen PWA execution when downloaded/installed.
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -12,8 +12,8 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/",
     start_url: "/",
     scope: "/",
-    display: "standalone",
-    display_override: ["standalone", "fullscreen", "minimal-ui"],
+    display: "fullscreen",
+    display_override: ["fullscreen", "standalone", "minimal-ui"],
     background_color: "#F8FAFC",
     theme_color: "#4F46E5",
     orientation: "portrait",

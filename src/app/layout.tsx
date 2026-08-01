@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   applicationName: "RewardLoop",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "RewardLoop",
   },
   formatDetection: {
