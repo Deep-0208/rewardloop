@@ -7,9 +7,13 @@ import { Skeleton } from "@/components/ui/skeleton";
  */
 export default function DashboardLoading() {
   return (
-    <div className="flex-1 flex flex-col pb-28" role="status" aria-label="Loading dashboard">
+    <div
+      className="flex-1 flex flex-col pb-28"
+      role="status"
+      aria-label="Loading dashboard"
+    >
       {/* Header skeleton */}
-      <header className="px-5 pt-8 pb-4">
+      <header className="px-5 pt-6 pb-3">
         <div className="flex items-start justify-between">
           <div>
             <Skeleton className="h-4 w-28 mb-2 rounded" />
