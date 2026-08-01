@@ -79,7 +79,9 @@ export default async function middleware(request: NextRequest) {
         return new NextResponse("Too Many Requests", { status: 429 });
       }
     } catch (error) {
-      logger.error("Rate limiting error (failing open)", error);
+      logger.error("Rate limiting error (failing open)", {
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
