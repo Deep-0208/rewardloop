@@ -10,11 +10,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/page-header";
 import { formatCustomerDisplayName } from "@/utils";
 import { LoadingState, ErrorState } from "@/components/ui/feedback-states";
-import {
-  CheckCircle,
-  UserPlus,
-  Loader2,
-} from "@/components/icons";
+import { CheckCircle, UserPlus, Loader2 } from "@/components/icons";
 import {
   Form,
   FormControl,
@@ -191,6 +187,16 @@ export function CustomerSelectionStep() {
         title="Select Customer"
         subtitle="Step 1 of 3"
         onBack={handleCancel}
+        actions={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCancel}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Cancel
+          </Button>
+        }
       />
 
       <div
@@ -238,7 +244,8 @@ export function CustomerSelectionStep() {
             {searchResult.status === "idle" && (
               <Button
                 type="submit"
-                size="lg" className="w-full"
+                size="lg"
+                className="w-full"
                 disabled={phoneValue.length !== 10}
               >
                 Search Customer
@@ -249,7 +256,11 @@ export function CustomerSelectionStep() {
 
         {/* Searching State */}
         {searchResult.status === "searching" && (
-          <LoadingState text="Looking up customer..." className="animate-in fade-in py-12" variant="inline" />
+          <LoadingState
+            text="Looking up customer..."
+            className="animate-in fade-in py-12"
+            variant="inline"
+          />
         )}
 
         {/* Found State */}
@@ -391,11 +402,11 @@ export function CustomerSelectionStep() {
 
         {/* Error State */}
         {searchResult.status === "error" && (
-          <ErrorState 
-            className="mt-8 animate-in fade-in" 
-            variant="inline" 
+          <ErrorState
+            className="mt-8 animate-in fade-in"
+            variant="inline"
             title="Search failed"
-            description={searchResult.error || "An unexpected error occurred."} 
+            description={searchResult.error || "An unexpected error occurred."}
           />
         )}
       </div>

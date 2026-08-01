@@ -41,14 +41,17 @@ export default async function MorePage() {
 
   return (
     <ScreenContainer>
-      <PageHeader title="Settings" />
+      <PageHeader
+        title="Settings"
+        subtitle="Manage store profile, catalog & loyalty rules"
+      />
 
       {/* Business Profile Card */}
       <Link href="/more/profile" className="group block outline-none mb-2">
         <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-transparent transition-all duration-300 hover:shadow-md hover:border-primary/30 active:scale-[0.98]">
           {/* Decorative background glow */}
           <div className="absolute -right-6 -top-6 size-32 rounded-full bg-primary/5 blur-2xl transition-all duration-300 group-hover:bg-primary/10" />
-          
+
           <CardContent className="relative flex items-center gap-4 p-4">
             <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary shadow-sm">
               <Store className="size-7" />
@@ -62,7 +65,10 @@ export default async function MorePage() {
               </span>
             </div>
             <div className="flex shrink-0 items-center gap-2.5">
-              <Badge variant="secondary" className="capitalize bg-background/50 backdrop-blur-sm border-border/50">
+              <Badge
+                variant="secondary"
+                className="capitalize bg-background/50 backdrop-blur-sm border-border/50"
+              >
                 Owner
               </Badge>
               <ChevronRight className="size-4 text-muted-foreground/60 transition-transform duration-300 group-hover:translate-x-1" />
@@ -184,7 +190,9 @@ function SettingsMenuItem({
       href={href}
       className="group flex items-center gap-3.5 p-4 transition-colors duration-200 hover:bg-muted/30 active:bg-muted/50 outline-none"
     >
-      <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 ${iconWrapperClassName}`}>
+      <div
+        className={`flex size-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 ${iconWrapperClassName}`}
+      >
         {icon}
       </div>
       <div className="flex flex-1 flex-col gap-0.5 min-w-0">
