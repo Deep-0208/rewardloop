@@ -42,6 +42,7 @@ export const viewport: Viewport = {
 };
 
 import { ServiceWorkerRegistry } from "@/components/service-worker-registry";
+import { PwaAutoFullscreen } from "@/components/pwa-auto-fullscreen";
 
 export default function RootLayout({
   children,
@@ -59,6 +60,7 @@ export default function RootLayout({
         <Providers>{children}</Providers>
         {process.env.NODE_ENV === "development" && <Agentation />}
         <ServiceWorkerRegistry />
+        <PwaAutoFullscreen />
       </body>
     </html>
   );
