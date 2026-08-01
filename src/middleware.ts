@@ -57,14 +57,14 @@ export function isOnboardingRoute(pathname: string): boolean {
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // 1. Rate Limiting
-  const ip = getTrustedClientIp(request);
-
+  // 1. Rate Limiting (Targeted at API and Auth routes)
   if (
     process.env.UPSTASH_REDIS_REST_URL &&
-    process.env.UPSTASH_REDIS_REST_TOKEN
+    process.env.UPSTASH_REDIS_REST_TOKEN &&
+    (pathname.startsWith("/api/") || isAuthRoute(pathname))
   ) {
     try {
+      const ip = getTrustedClientIp(request);
       const { globalRateLimit, authRateLimit } =
         await import("@/lib/rate-limit");
 
@@ -76,7 +76,19 @@ export default async function middleware(request: NextRequest) {
       }
 
       if (!rateLimitResult.success) {
-        return new NextResponse("Too Many Requests", { status: 429 });
+        return new NextResponse(
+          JSON.stringify({
+            error: "Too Many Requests",
+            message: "Rate limit exceeded. Please try again in a moment.",
+          }),
+          {
+            status: 429,
+            headers: {
+              "Content-Type": "application/json",
+              "Retry-After": "10",
+            },
+          },
+        );
       }
     } catch (error) {
       logger.error("Rate limiting error (failing open)", {
