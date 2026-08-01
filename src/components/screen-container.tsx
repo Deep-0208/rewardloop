@@ -11,7 +11,7 @@ export function ScreenContainer({ children, className }: PropsWithChildren) {
   return (
     <main
       className={cn(
-        "flex flex-1 flex-col gap-6 overflow-y-auto px-5 py-6 pb-28 stagger-children",
+        "flex flex-1 flex-col gap-4 overflow-y-auto px-5 pt-1 pb-28 stagger-children",
         className,
       )}
     >
