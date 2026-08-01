@@ -4,7 +4,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, User, Receipt, Wallet } from "@/components/icons";
+import {
+  CheckCircle,
+  User,
+  Receipt,
+  Wallet,
+  Sparkles,
+} from "@/components/icons";
 import { ROUTES } from "@/constants/routes";
 import { formatCurrency } from "@/utils";
 import type { CheckoutSummary } from "../types";
@@ -115,14 +121,17 @@ export function VisitSuccessScreen({
             )}
           </div>
 
-          {/* Reward Earned */}
           {summary.rewardEarnedPaise > 0 && (
-            <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 mt-2">
-              <span className="text-sm text-emerald-700 dark:text-emerald-300 flex items-center gap-2 font-medium">
-                <Wallet className="size-4" aria-hidden="true" />
-                Earned
-              </span>
-              <span className="font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
+            <div className="flex justify-between items-center p-3.5 rounded-[var(--radius-lg)] bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 mt-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 text-primary shrink-0">
+                  <Sparkles className="size-4" aria-hidden="true" />
+                </div>
+                <span className="font-semibold text-foreground text-sm tracking-tight">
+                  Earned Today
+                </span>
+              </div>
+              <span className="font-extrabold text-primary text-base tracking-tight tabular-nums">
                 +{formatCurrency(summary.rewardEarnedPaise)}
               </span>
             </div>

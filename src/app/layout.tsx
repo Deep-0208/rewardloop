@@ -49,6 +49,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} h-full w-full`}
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <body className="min-h-dvh w-full flex flex-col font-sans antialiased">

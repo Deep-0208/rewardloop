@@ -68,6 +68,7 @@ export {
   Hash,
   Percent,
   Star,
+  Sparkles,
   TrendingUp,
   TrendingDown,
   Minus,

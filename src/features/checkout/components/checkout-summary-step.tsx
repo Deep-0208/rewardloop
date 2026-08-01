@@ -29,6 +29,7 @@ import {
   User,
   Tag,
   Wallet,
+  Sparkles,
 } from "@/components/icons";
 import { ROUTES } from "@/constants/routes";
 import { formatCurrency } from "@/utils";
@@ -48,10 +49,7 @@ import {
   formatPaiseForRupeeInput,
   parseRupeeInputToPaise,
 } from "@/features/reward/utils/reward-input";
-import type {
-  CheckoutSummary,
-  CheckoutSummaryResponse,
-} from "../types";
+import type { CheckoutSummary, CheckoutSummaryResponse } from "../types";
 import { VisitSuccessScreen } from "./visit-success-screen";
 import { PaymentSelector } from "./payment-selector";
 import { RewardRedemptionCard } from "./reward-redemption-card";
@@ -109,7 +107,9 @@ export function CheckoutSummaryStep() {
   const [resendSeconds, setResendSeconds] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isCompleting, setIsCompleting] = useState(false);
-  const [completedPaymentMethod, setCompletedPaymentMethod] = useState<string | null>(null);
+  const [completedPaymentMethod, setCompletedPaymentMethod] = useState<
+    string | null
+  >(null);
   const [isOtpPending, startOtpTransition] = useTransition();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 
@@ -377,7 +377,8 @@ export function CheckoutSummaryStep() {
 
   const services = summary.items.filter((item) => item.type === "service");
   const products = summary.items.filter((item) => item.type === "product");
-  const effectivePaymentMethod = summary.finalPayablePaise === 0 ? "none" : paymentMethod;
+  const effectivePaymentMethod =
+    summary.finalPayablePaise === 0 ? "none" : paymentMethod;
   const isDebouncing = requestedRewardPaise !== summary.rewardUsedPaise;
 
   return (
@@ -419,7 +420,10 @@ export function CheckoutSummaryStep() {
             <CardContent className="p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h2 className="flex items-center gap-2 font-medium">
-                  <IndianRupee className="size-4 text-primary" aria-hidden="true" />
+                  <IndianRupee
+                    className="size-4 text-primary"
+                    aria-hidden="true"
+                  />
                   Selected services
                 </h2>
                 <span className="text-sm font-semibold tabular-nums">
@@ -497,25 +501,31 @@ export function CheckoutSummaryStep() {
             </h2>
           </div>
 
-          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex justify-between items-center text-[14px]">
-            <span className="text-emerald-700 dark:text-emerald-300 flex items-center gap-2 font-medium">
-              <Wallet className="size-4" />
-              Earn Today{" "}
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded-full font-bold">
-                {summary.reward.rewardPercentage}%
-              </span>
-            </span>
-            <span className="font-bold text-emerald-700 dark:text-emerald-300">
+          <div className="flex justify-between items-center p-3.5 rounded-[var(--radius-lg)] bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30">
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 text-primary shrink-0">
+                <Sparkles className="size-4" aria-hidden="true" />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-foreground text-sm tracking-tight">
+                  Earn Today
+                </span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-primary/15 text-primary border border-primary/20 tabular-nums tracking-wider uppercase">
+                  {summary.reward.rewardPercentage}% BACK
+                </span>
+              </div>
+            </div>
+            <span className="font-extrabold text-primary text-base tracking-tight tabular-nums">
               +{formatCurrency(summary.rewardEarnedPaise)}
             </span>
           </div>
         </div>
 
         {summary.finalPayablePaise > 0 ? (
-        <PaymentSelector
-          value={effectivePaymentMethod}
-          onChange={(val) => setPaymentMethod(val)}
-        />
+          <PaymentSelector
+            value={effectivePaymentMethod}
+            onChange={(val) => setPaymentMethod(val)}
+          />
         ) : (
           <Alert className="border-emerald-500/30 bg-emerald-500/10 mt-4 rounded-2xl">
             <CheckCircle
@@ -567,11 +577,7 @@ export function CheckoutSummaryStep() {
 
       {/* OTP Verification Drawer */}
       <Drawer
-        open={
-          summary.requiresOtp &&
-          otpState === "sent" &&
-          !otpVerifiedToken
-        }
+        open={summary.requiresOtp && otpState === "sent" && !otpVerifiedToken}
         onOpenChange={(open) => {
           if (!open) setOtpState("idle");
         }}
