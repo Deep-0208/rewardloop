@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { LogoutButton } from "./logout-button";
 import { FullscreenToggle } from "@/components/fullscreen-toggle";
+import { RewardLoopLogo } from "@/components/brand";
 
 /**
  * More/Settings page — Business configuration hub.
@@ -185,6 +186,14 @@ export default async function MorePage() {
           </CardContent>
         </Card>
       </Section>
+
+      {/* Official Brand Footer */}
+      <div className="flex flex-col items-center justify-center pt-8 pb-6 gap-1.5 opacity-70 hover:opacity-100 transition-opacity">
+        <RewardLoopLogo variant="horizontal" size="sm" />
+        <span className="text-[11px] font-medium text-muted-foreground">
+          RewardLoop v1.0 • Retention Engine
+        </span>
+      </div>
     </ScreenContainer>
   );
 }

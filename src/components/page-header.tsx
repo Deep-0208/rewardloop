@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { ArrowLeft } from "@/components/icons";
+import { RewardLoopIcon } from "@/components/brand";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -9,6 +10,8 @@ interface PageHeaderProps {
   onBack?: () => void;
   /** Optional path to go back to. If provided, renders a back link. */
   backTo?: string;
+  /** Render official brand mark next to title */
+  showBrandIcon?: boolean;
   actions?: ReactNode;
   className?: string;
 }
@@ -16,7 +19,7 @@ interface PageHeaderProps {
 /**
  * PageHeader — Reusable page-level header.
  *
- * Displays title with optional back button and action slots.
+ * Displays title with optional back button, brand icon, and action slots.
  * Uses H1 per semantic HTML best practices (one H1 per page).
  */
 export function PageHeader({
@@ -24,6 +27,7 @@ export function PageHeader({
   subtitle,
   onBack,
   backTo,
+  showBrandIcon = false,
   actions,
   className,
 }: PageHeaderProps) {
@@ -48,6 +52,10 @@ export function PageHeader({
           <ArrowLeft className="size-5" />
         </Link>
       ) : null}
+
+      {showBrandIcon && (
+        <RewardLoopIcon size={28} className="rounded-lg shadow-sm" />
+      )}
 
       <div className="flex-1">
         <h1 className="text-[22px] font-bold leading-tight tracking-tight text-foreground">

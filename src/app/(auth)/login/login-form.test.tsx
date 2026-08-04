@@ -32,8 +32,12 @@ describe("LoginForm Component", () => {
 
   it("should render RewardLoop title and phone input field", () => {
     render(<LoginForm />);
-    expect(screen.getByText("RewardLoop")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Enter 10-digit number")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /reward\s*loop/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Enter 10-digit number"),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
   });
 
@@ -44,7 +48,9 @@ describe("LoginForm Component", () => {
     fireEvent.change(input, { target: { value: "9876543210" } });
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Continue" })).not.toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: "Continue" }),
+      ).not.toBeDisabled();
     });
   });
 
@@ -59,7 +65,9 @@ describe("LoginForm Component", () => {
     fireEvent.change(input, { target: { value: "9876543210" } });
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Continue" })).not.toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: "Continue" }),
+      ).not.toBeDisabled();
     });
 
     const submitBtn = screen.getByRole("button");
@@ -70,4 +78,3 @@ describe("LoginForm Component", () => {
     });
   });
 });
-

@@ -90,3 +90,6 @@ export const ICON_SIZES = {
   /** Small badges/indicators */
   sm: "size-3.5",
 } as const;
+
+/* ─── Official Brand Components ────────────────────────────────────────────── */
+export { RewardLoopIcon, RewardLoopLogo } from "@/components/brand";

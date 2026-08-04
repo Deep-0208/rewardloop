@@ -24,10 +24,7 @@ export default async function DashboardPage() {
   if (!result.success) {
     return (
       <div className="flex flex-1 flex-col pb-28">
-        <PageHeader
-          title="Dashboard"
-          subtitle={`${greeting} 👋`}
-        />
+        <PageHeader title="Dashboard" subtitle={`${greeting} 👋`} />
         <ErrorState
           title="Unable to load dashboard"
           description="Please check your connection and try again."
@@ -56,6 +53,7 @@ export default async function DashboardPage() {
       <PageHeader
         title={businessName}
         subtitle={`${greeting} 👋`}
+        showBrandIcon
         actions={
           <div className="rounded-lg bg-muted/60 px-3 py-1.5">
             <p className="text-[12px] font-semibold text-foreground tabular-nums">

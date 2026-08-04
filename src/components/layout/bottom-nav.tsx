@@ -184,12 +184,12 @@ export function BottomNav({ onAddVisit }: BottomNavProps) {
     <nav
       className="
         fixed bottom-5 left-1/2 -translate-x-1/2 z-50
-        w-[calc(100%-2.5rem)] max-w-[400px] h-[72px]
+        w-[calc(100%-2.5rem)] max-w-[400px] sm:max-w-[480px] md:max-w-[560px] h-[72px]
         bg-card/85 backdrop-blur-2xl
         shadow-[var(--shadow-float)] border border-border/40
         rounded-3xl
         flex items-center justify-around
-        px-2
+        px-2 transition-all duration-200
       "
       aria-label="Main navigation"
     >

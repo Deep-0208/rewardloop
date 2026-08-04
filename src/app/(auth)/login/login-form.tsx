@@ -21,7 +21,7 @@ import {
   type PhoneSchemaInput,
 } from "@/features/auth/schemas/phone-schema";
 import { sendOTP } from "@/features/auth/actions/send-otp";
-import { Gift } from "@/components/icons";
+import { RewardLoopIcon } from "@/components/brand";
 import posthog from "posthog-js";
 
 export default function LoginForm({
@@ -61,16 +61,18 @@ export default function LoginForm({
       <div className="w-full max-w-[400px] mx-auto">
         <div className="flex flex-col items-center gap-6 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Brand Icon */}
-          <div className="flex size-[72px] items-center justify-center rounded-[20px] bg-gradient-to-br from-primary to-primary/80 shadow-[0_8px_32px_rgba(79,70,229,0.3)] ring-1 ring-primary/20 hover:scale-105 transition-transform">
-            <Gift className="size-8 text-primary-foreground drop-shadow-sm" strokeWidth={2.5} />
-          </div>
+          <RewardLoopIcon
+            size={76}
+            className="rounded-[22px] hover:scale-105 transition-transform"
+          />
 
           {/* App Name & Tagline */}
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
-              RewardLoop
+          <div className="text-center space-y-1.5">
+            <h1 className="text-3xl tracking-tight">
+              <span className="text-foreground font-semibold">Reward</span>
+              <span className="text-primary font-bold">Loop</span>
             </h1>
-            <p className="text-[15px] font-medium text-muted-foreground/80">
+            <p className="text-[14px] font-medium text-muted-foreground/90">
               Reward your regulars
             </p>
           </div>
@@ -124,9 +126,20 @@ export default function LoginForm({
                 </Button>
                 <p className="text-center text-[13px] text-muted-foreground">
                   By continuing, you agree to our{" "}
-                  <a href="/terms" className="font-medium underline hover:text-foreground">Terms</a>
-                  {" "}and{" "}
-                  <a href="/privacy" className="font-medium underline hover:text-foreground">Privacy Policy</a>.
+                  <a
+                    href="/terms"
+                    className="font-medium underline hover:text-foreground"
+                  >
+                    Terms
+                  </a>{" "}
+                  and{" "}
+                  <a
+                    href="/privacy"
+                    className="font-medium underline hover:text-foreground"
+                  >
+                    Privacy Policy
+                  </a>
+                  .
                 </p>
               </div>
             </form>

@@ -1,12 +1,11 @@
-import { redirect } from "next/navigation";
-import { ROUTES } from "@/constants/routes";
+import { SplashScreen } from "@/components/splash-screen";
 
 /**
- * Root page — redirects to dashboard.
+ * Root page — Splash screen with auth-based routing.
  *
- * In a later sprint, this will check auth state and redirect
- * to /login or /onboarding as appropriate.
+ * Shows a branded splash screen while checking authentication state,
+ * then navigates to /dashboard (authenticated) or /login (unauthenticated).
  */
 export default function RootPage() {
-  redirect(ROUTES.DASHBOARD);
+  return <SplashScreen />;
 }

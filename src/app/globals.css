@@ -62,6 +62,13 @@
   --radius-3xl: 24px;
   --radius-4xl: 9999px;
 
+  /* Explicit breakpoint scale for Tailwind v4 responsive modifiers */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
   /* Extended spacing scale: 4 / 8 / 12 / 16 / 24 / 32 */
   --spacing-2xs: 4px;
   --spacing-xs: 8px;
@@ -71,6 +78,51 @@
   --spacing-lg: 32px;
   --spacing-xl: 48px;
   --spacing-2xl: 64px;
+
+  /* Explicit width scale to prevent spacing scale collision in Tailwind v4 */
+  --width-3xs: 16rem;
+  --width-2xs: 18rem;
+  --width-xs: 20rem;
+  --width-sm: 24rem;
+  --width-md: 28rem;
+  --width-lg: 32rem;
+  --width-xl: 36rem;
+  --width-2xl: 42rem;
+  --width-3xl: 48rem;
+  --width-4xl: 56rem;
+  --width-5xl: 64rem;
+  --width-6xl: 72rem;
+  --width-7xl: 80rem;
+
+  /* Explicit min-width scale */
+  --min-width-3xs: 16rem;
+  --min-width-2xs: 18rem;
+  --min-width-xs: 20rem;
+  --min-width-sm: 24rem;
+  --min-width-md: 28rem;
+  --min-width-lg: 32rem;
+  --min-width-xl: 36rem;
+  --min-width-2xl: 42rem;
+  --min-width-3xl: 48rem;
+  --min-width-4xl: 56rem;
+  --min-width-5xl: 64rem;
+  --min-width-6xl: 72rem;
+  --min-width-7xl: 80rem;
+
+  /* Explicit max-width scale */
+  --max-width-3xs: 16rem;
+  --max-width-2xs: 18rem;
+  --max-width-xs: 20rem;
+  --max-width-sm: 24rem;
+  --max-width-md: 28rem;
+  --max-width-lg: 32rem;
+  --max-width-xl: 36rem;
+  --max-width-2xl: 42rem;
+  --max-width-3xl: 48rem;
+  --max-width-4xl: 56rem;
+  --max-width-5xl: 64rem;
+  --max-width-6xl: 72rem;
+  --max-width-7xl: 80rem;
 
   --transition-fast: 150ms;
   --transition-normal: 200ms;
