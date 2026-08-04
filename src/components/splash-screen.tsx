@@ -23,8 +23,8 @@ import { createClient } from "@/lib/supabase/client";
 import { ROUTES } from "@/constants/routes";
 import { RewardLoopIcon } from "@/components/brand";
 
-/** Minimum splash display time (ms) to prevent flicker */
-const MIN_SPLASH_MS = 800;
+/** Default minimum splash display time for regular web browser visits (ms) */
+const WEB_MIN_SPLASH_MS = 300;
 
 export function SplashScreen() {
   const router = useRouter();
@@ -33,6 +33,13 @@ export function SplashScreen() {
 
   useEffect(() => {
     const startTime = Date.now();
+
+    // Detect if running as an installed PWA (Standalone / Fullscreen mode)
+    const isPwa =
+      typeof window !== "undefined" &&
+      (window.matchMedia("(display-mode: standalone)").matches ||
+        window.matchMedia("(display-mode: fullscreen)").matches ||
+        (navigator as unknown as { standalone?: boolean }).standalone === true);
 
     async function resolveAuth() {
       let destination: string = ROUTES.LOGIN;
@@ -50,17 +57,25 @@ export function SplashScreen() {
         // Auth check failed — fall through to login
       }
 
-      // Ensure minimum splash duration for a polished feel
+      // If running as an installed PWA, native OS splash screen already displayed.
+      // Navigate immediately without double splash delay.
+      const minDisplayMs = isPwa ? 0 : WEB_MIN_SPLASH_MS;
       const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, MIN_SPLASH_MS - elapsed);
+      const remaining = Math.max(0, minDisplayMs - elapsed);
 
-      await new Promise((resolve) => setTimeout(resolve, remaining));
+      if (remaining > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remaining));
+      }
 
-      // Fade out, then navigate
-      setVisible(false);
-      // Wait for fade-out transition to complete before navigating
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      router.replace(destination);
+      if (isPwa) {
+        // Instant transition for PWA
+        router.replace(destination);
+      } else {
+        // Fade out, then navigate for web browser visits
+        setVisible(false);
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        router.replace(destination);
+      }
     }
 
     resolveAuth();
