@@ -30,6 +30,7 @@ export function SplashScreen() {
   const router = useRouter();
   const [visible, setVisible] = useState(true);
   const scopeId = useId();
+  const isDev = process.env.NODE_ENV === "development";
 
   useEffect(() => {
     const startTime = Date.now();
@@ -57,9 +58,10 @@ export function SplashScreen() {
         // Auth check failed — fall through to login
       }
 
-      // If running as an installed PWA, native OS splash screen already displayed.
+      // If running as an installed PWA or in production, native OS splash screen already displayed.
       // Navigate immediately without double splash delay.
-      const minDisplayMs = isPwa ? 0 : WEB_MIN_SPLASH_MS;
+      const isProd = process.env.NODE_ENV === "production";
+      const minDisplayMs = isPwa || isProd ? 0 : WEB_MIN_SPLASH_MS;
       const elapsed = Date.now() - startTime;
       const remaining = Math.max(0, minDisplayMs - elapsed);
 
@@ -67,8 +69,8 @@ export function SplashScreen() {
         await new Promise((resolve) => setTimeout(resolve, remaining));
       }
 
-      if (isPwa) {
-        // Instant transition for PWA
+      if (isPwa || isProd) {
+        // Instant transition for PWA or production
         router.replace(destination);
       } else {
         // Fade out, then navigate for web browser visits
@@ -80,6 +82,10 @@ export function SplashScreen() {
 
     resolveAuth();
   }, [router]);
+
+  if (!isDev) {
+    return null;
+  }
 
   return (
     <>
